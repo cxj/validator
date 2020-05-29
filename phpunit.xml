@@ -1,0 +1,11 @@
+<phpunit colors="true" bootstrap="./phpunit.php">
+    <testsuites>
+        <testsuite name="suite1">
+            <directory>./tests</directory>
+            <exclude></exclude>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="LIB_HOME" value="./tests"/>
+    </php>
+</phpunit>
