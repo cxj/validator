@@ -1,8 +1,7 @@
 <?php
-namespace Cxj;
+namespace Cxj\Validator;
 
 class Define {
-
     public function railway_bind(callable $fn): callable
     {
         return fn($param): Result
@@ -13,7 +12,7 @@ class Define {
 
     public function compose(callable ...$fns): callable
     {
-        return function ($x) use ($fns) 
+        return function ($x) use ($fns)
             {
                 $ret = is_object($x) ? clone($x) : $x;
                 foreach ($fns as $fn) {

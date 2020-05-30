@@ -1,5 +1,5 @@
 <?php
-namespace Cxj;
+namespace Cxj\Validator;
 
 interface Result
 {

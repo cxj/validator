@@ -1,4 +1,4 @@
 <?php
-namespace Cxj;
+namespace Cxj\Validator;
 
 class IsString implements ValidationError {}

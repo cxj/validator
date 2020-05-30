@@ -1,13 +1,4 @@
 <?php
-namespace Cxj;
+namespace Cxj\Validator;
 
-class InvalidString implements ValidationError
-{
-    protected string $message;
-
-
-    public function __construct(string $message)
-    {
-        $this->message = $message;
-    }
-}
+class InvalidString extends ValidationError {}

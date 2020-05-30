@@ -1,39 +1,39 @@
 <?php
-namespace Cxj;
+namespace Cxj\Validator;
 
-//use IsString;
-//use Validator;
 require '../vendor/autoload.php';
 
-/*
-function railway_bind(callable $fn): callable
-{
-    return fn($param): Result
-        => $param instanceof ValidationError
-        ? $param
-        : $fn($param->value);
-}
-
-function compose(callable ...$fns): callable
-{
-    return function ($x) use ($fns) 
-        {
-            $ret = is_object($x) ? clone($x) : $x;
-            foreach ($fns as $fn) {
-                $ret = $fn($ret);
-            }
-            return $ret;
-        };
-}
-*/
-
 $validator = new Validator();
-$define = new Define();
+$define    = new Define();
 
 $validate = $define->compose(
     $define->railway_bind([$validator, "string"])
+
 );
 
 $result = $validate(Success::of(123));
 
+echo "Test 1, invalid string: ";
+var_dump($result);
+
+$validate = $define->compose(
+    $define->railway_bind(
+        fn($s): Result => $validator->stringNotEmpty($s, "String Not EMpty!")
+    )
+);
+
+$result = $validate(Success::of("abc"));
+
+echo "Test 2, string not empty: ";
+var_dump($result);
+
+//--
+$v = $define->railway_bind(
+    fn($s): Result => $validator->stringNotEmpty(
+        $s,
+        "Dude, what were you thinking?"
+    )
+);
+$result = $v(Success::of(123));
+echo "Test 3, string not empty and not string: ";
 var_dump($result);
