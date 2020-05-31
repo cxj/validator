@@ -48,16 +48,17 @@ class Validator
      *
      * @return callable
      */
-    public function create(array $method, string $message): callable
+    public function create(string $method, string $message): callable
     {
+        $callable = [$this, $method];
         return $this->railway_bind(
-            fn($s): Result => $method($s, $message)
+            fn($s): Result => $callable($s, $message)
         );
     }
 
     public function createString($message): callable
     {
-        return $this->create([$this, "string"], $message);
+        return $this->create("string", $message);
     }
 
     public function railway_bind(callable $fn): callable

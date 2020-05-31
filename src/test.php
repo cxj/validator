@@ -37,7 +37,7 @@ echo "Test 3, string not empty and not string: ";
 var_dump($result);
 
 // Test 4
-$v = $validator->create([$validator, "string"], "NO, not a string");
+$v = $validator->create("string", "NO, not a string");
 $result = $v(Success::of(123));
 echo "Test 4, param not a string: ";
 var_dump($result);
