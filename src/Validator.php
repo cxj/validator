@@ -55,6 +55,11 @@ class Validator
         );
     }
 
+    public function createString($message): callable
+    {
+        return $this->create([$this, "string"], $message);
+    }
+
     public function railway_bind(callable $fn): callable
     {
         return fn($param): Result => $param instanceof ValidationError
