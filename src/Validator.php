@@ -24,7 +24,7 @@ class Validator
     public function string($value, string $message = ''): Result
     {
         if (!\is_string($value)) {
-            return new ValidationError(sprintf(
+            return new Failure(sprintf(
                 $message ?: 'Expected a string. Got: %s',
                 gettype($value)
             ));
@@ -35,11 +35,11 @@ class Validator
 
     public function stringNotEmpty($value, string $message = ''): Result
     {
-        if ($this->string($value) instanceof ValidationError) {
-            return new ValidationError($message);
+        if ($this->string($value) instanceof Failure) {
+            return new Failure($message);
         }
         if ($value != "") {
-            return new ValidationError($message);
+            return new Failure($message);
         }
 
         return Success::of($value);
@@ -66,7 +66,7 @@ class Validator
 
     public function railway_bind(callable $fn): callable
     {
-        return fn($param): Result => $param instanceof ValidationError
+        return fn($param): Result => $param instanceof Failure
             ? $param
             : $fn($param->value());
     }

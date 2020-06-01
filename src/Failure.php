@@ -1,7 +1,7 @@
 <?php
 namespace Cxj\Validator;
 
-class ValidationError implements Result
+class Failure implements Result
 {
     protected string $message;
 
