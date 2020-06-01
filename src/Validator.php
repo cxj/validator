@@ -24,7 +24,7 @@ class Validator
     public function string($value, string $message = ''): Result
     {
         if (!\is_string($value)) {
-            return new InvalidString(sprintf(
+            return new ValidationError(sprintf(
                 $message ?: 'Expected a string. Got: %s',
                 gettype($value)
             ));
