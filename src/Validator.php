@@ -24,7 +24,10 @@ class Validator
     public function string($value, string $message = ''): Result
     {
         if (!\is_string($value)) {
-            return new InvalidString($message);
+            return new InvalidString(sprintf(
+                $message ?: 'Expected a string. Got: %s',
+                gettype($value)
+            ));
         }
 
         return Success::of($value);
@@ -33,7 +36,7 @@ class Validator
     public function stringNotEmpty($value, string $message = ''): Result
     {
         if ($this->string($value) instanceof ValidationError) {
-            return new InvalidString($message);
+            return new ValidationError($message);
         }
         if ($value != "") {
             return new ValidationError($message);
