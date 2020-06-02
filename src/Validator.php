@@ -76,6 +76,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -94,6 +96,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -112,6 +116,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -130,6 +136,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -148,6 +156,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -166,6 +176,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -184,6 +196,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -202,6 +216,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -232,6 +248,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -250,6 +268,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -268,6 +288,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -296,6 +318,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -314,6 +338,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -337,6 +363,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -355,6 +383,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -375,6 +405,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -395,20 +427,29 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
      *
      * @param mixed $value
-     * @param array<object|string> $classes
+     *
+     * @XXparam array<object|string> $classes
+     *
      * @param string $message
      *
      */
-    public function isInstanceOfAny($value, array $classes, $message = '')
+    public function isInstanceOfAny($value, $classes, $message = '')
     {
+        // DEBUG
+        error_log(__METHOD__ . " value: " . $this->valueToString($value));
+        error_log(__METHOD__ . " classes: " . var_export($classes, true));
+        // END DEBUG
+
         foreach ($classes as $class) {
             if ($value instanceof $class) {
-                return;
+                return Success::of($value);
             }
         }
 
@@ -418,7 +459,7 @@ class Validator
                 $this->typeToString($value),
                 \implode(
                     ', ',
-                    \array_map(['static', 'valueToString'], $classes)
+                    \array_map([$this, 'valueToString'], $classes)
                 )
             )
         );
@@ -444,6 +485,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -466,6 +509,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -495,6 +540,8 @@ class Validator
                 )
             )
         );
+
+        return Success::of($value);
     }
 
     /**
@@ -513,6 +560,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -531,6 +580,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -549,6 +600,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -564,6 +617,8 @@ class Validator
                 $message ?: 'Expected a value other than null.'
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -582,6 +637,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -600,6 +657,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -615,6 +674,8 @@ class Validator
                 $message ?: 'Expected a value other than false.'
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -632,6 +693,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -650,6 +713,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -668,6 +733,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -685,6 +752,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -711,6 +780,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -730,6 +801,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -748,6 +821,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -768,6 +843,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -787,6 +864,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -807,6 +886,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -827,6 +908,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -847,6 +930,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -867,6 +952,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -891,6 +978,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -905,6 +994,8 @@ class Validator
     public function oneOf($value, array $values, $message = '')
     {
         $this->inArray($value, $values, $message);
+
+        return Success::of($value);
     }
 
     /**
@@ -931,6 +1022,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -951,6 +1044,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -971,6 +1066,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -989,6 +1086,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1009,6 +1108,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1029,6 +1130,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1058,6 +1161,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1078,6 +1183,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1098,6 +1205,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1117,6 +1226,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1138,6 +1249,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1158,6 +1271,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1183,6 +1298,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1206,6 +1323,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1229,6 +1348,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1252,6 +1373,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1275,6 +1398,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1295,6 +1420,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1317,6 +1444,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1339,6 +1468,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1365,6 +1496,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1387,6 +1520,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1406,6 +1541,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1425,6 +1562,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1442,6 +1581,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1459,6 +1600,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1476,6 +1619,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1496,6 +1641,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1513,6 +1660,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1533,6 +1682,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1552,6 +1703,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of(true);
     }
 
     /**
@@ -1571,16 +1724,18 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
-     *
      * @param string|object $classOrObject
      * @param mixed $method
      * @param string $message
      *
+     * @return Result
      */
-    public function methodExists($classOrObject, $method, $message = '')
+    public function methodExists($classOrObject, $method, $message = ''): Result
     {
         if (!\method_exists($classOrObject, $method)) {
             return new Failure(
@@ -1590,6 +1745,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of(true);
     }
 
     /**
@@ -1609,6 +1766,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1628,6 +1787,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1647,6 +1808,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1667,6 +1830,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1689,6 +1854,8 @@ class Validator
                 \count($array)
             )
         );
+
+        return Success::of($value);
     }
 
     /**
@@ -1711,6 +1878,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1733,6 +1902,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1759,6 +1930,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1774,6 +1947,8 @@ class Validator
                 $message ?: 'Expected list - non-associative array.'
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1786,6 +1961,8 @@ class Validator
     {
         $this->isList($array, $message);
         $this->notEmpty($array, $message);
+
+        return Success::of($value);
     }
 
     /**
@@ -1805,6 +1982,8 @@ class Validator
                 $message ?: 'Expected map - associative array with string keys.'
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1817,6 +1996,8 @@ class Validator
     {
         $this->isMap($array, $message);
         $this->notEmpty($array, $message);
+
+        return Success::of($value);
     }
 
     /**
@@ -1846,6 +2027,8 @@ class Validator
                 )
             );
         }
+
+        return Success::of($value);
     }
 
     /**
@@ -1975,12 +2158,34 @@ class Validator
      *
      * @return callable
      */
-    public function create(string $method, string $message): callable
+    public function create(string $method, string $message = ''): callable
     {
         $callable = [$this, $method];
 
         return $this->railway_bind(
             fn($s): Result => $callable($s, $message)
+        );
+    }
+
+    public function create2(string $method, string $message = ''): callable
+    {
+        $callable = [$this, $method];
+
+        /*
+        return $this->railway_bind(
+            fn($s, $t): Result => $callable($s, $t, $message)
+        );
+        */
+
+        return $this->railway_bind2(
+            function ($s, $t) use ($callable, $message) {
+                // DEBUG
+                error_log("anon callable: " . $this->valueToString($callable));
+                error_log("anon called with s: " . print_r($s, true));
+                error_log("anon called with t: " . print_r($t, true));
+                // END DEBUG
+                $callable($s, $t, $message);
+            }
         );
     }
 
