@@ -9,6 +9,19 @@
  */
 namespace Cxj\Validator;
 
+use ArrayAccess;
+use BadMethodCallException;
+use Closure;
+use Countable;
+use DateTime;
+use DateTimeImmutable;
+use Exception;
+use InvalidArgumentException;
+use ResourceBundle;
+use SimpleXMLElement;
+use Throwable;
+use Traversable;
+
 /**
  * Efficient functional tests to validate method input and output parameters.
  * @package Cxj\Validator
@@ -24,28 +37,1737 @@ class Validator
     public function string($value, string $message = ''): Result
     {
         if (!\is_string($value)) {
-            return new Failure(sprintf(
+            return new Failure(\sprintf(
                 $message ?: 'Expected a string. Got: %s',
-                gettype($value)
+                $this->typeToString($value)
             ));
         }
-
-        return Success::of($value);
-    }
-
-    public function stringNotEmpty($value, string $message = ''): Result
-    {
-        if ($this->string($value) instanceof Failure) {
-            return new Failure($message);
-        }
-        if ($value != "") {
-            return new Failure($message);
-        }
-
         return Success::of($value);
     }
 
     /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function stringNotEmpty($value, $message = '')
+    {
+        $this->string($value, $message);
+        $this->notEq($value, '', $message);
+        return Success::of($value);
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function integer($value, $message = '')
+    {
+        if (!\is_int($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an integer. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function integerish($value, $message = '')
+    {
+        if (!\is_numeric($value) || $value != (int) $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an integerish value. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function float($value, $message = '')
+    {
+        if (!\is_float($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a float. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function numeric($value, $message = '')
+    {
+        if (!\is_numeric($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a numeric. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function natural($value, $message = '')
+    {
+        if (!\is_int($value) || $value < 0) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a non-negative integer. Got %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function boolean($value, $message = '')
+    {
+        if (!\is_bool($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a boolean. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function scalar($value, $message = '')
+    {
+        if (!\is_scalar($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a scalar. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function object($value, $message = '')
+    {
+        if (!\is_object($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an object. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed       $value
+     * @param string|null $type    type of resource this should be. @see https://www.php.net/manual/en/function.get-resource-type.php
+     * @param string      $message
+     *
+     */
+    public function resource($value, $type = null, $message = '')
+    {
+        if (!\is_resource($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a resource. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+
+        if ($type && $type !== \get_resource_type($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a resource of type %2$s. Got: %s',
+                $this->typeToString($value),
+                $type
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isCallable($value, $message = '')
+    {
+        if (!\is_callable($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a callable. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isArray($value, $message = '')
+    {
+        if (!\is_array($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @deprecated use "isIterable" or "isInstanceOf" instead
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isTraversable($value, $message = '')
+    {
+        @\trigger_error(
+            \sprintf(
+                'The "%s" assertion is deprecated. You should stop using it, as it will soon be removed in 2.0 version. Use "isIterable" or "isInstanceOf" instead.',
+                __METHOD__
+            ),
+            \E_USER_DEPRECATED
+        );
+
+        if (!\is_array($value) && !($value instanceof Traversable)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a traversable. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isArrayAccessible($value, $message = '')
+    {
+        if (!\is_array($value) && !($value instanceof ArrayAccess)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array accessible. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isCountable($value, $message = '')
+    {
+        if (
+            !\is_array($value)
+            && !($value instanceof Countable)
+            && !($value instanceof ResourceBundle)
+            && !($value instanceof SimpleXMLElement)
+        ) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a countable. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isIterable($value, $message = '')
+    {
+        if (!\is_array($value) && !($value instanceof Traversable)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an iterable. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed         $value
+     * @param string|object $class
+     * @param string        $message
+     *
+     */
+    public function isInstanceOf($value, $class, $message = '')
+    {
+        if (!($value instanceof $class)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an instance of %2$s. Got: %s',
+                $this->typeToString($value),
+                $class
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed         $value
+     * @param string|object $class
+     * @param string        $message
+     *
+     */
+    public function notInstanceOf($value, $class, $message = '')
+    {
+        if ($value instanceof $class) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an instance other than %2$s. Got: %s',
+                $this->typeToString($value),
+                $class
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed                $value
+     * @param array<object|string> $classes
+     * @param string               $message
+     *
+     */
+    public function isInstanceOfAny($value, array $classes, $message = '')
+    {
+        foreach ($classes as $class) {
+            if ($value instanceof $class) {
+                return;
+            }
+        }
+
+        return new Failure(\sprintf(
+            $message ?: 'Expected an instance of any of %2$s. Got: %s',
+            $this->typeToString($value),
+            \implode(', ', \array_map(array('static', 'valueToString'), $classes))
+        ));
+    }
+
+    /**
+     *
+     * @param object|string $value
+     * @param string        $class
+     * @param string        $message
+     *
+     */
+    public function isAOf($value, $class, $message = '')
+    {
+        $this->string($class, 'Expected class as a string. Got: %s');
+
+        if (!\is_a($value, $class, \is_string($value))) {
+            return new Failure(sprintf(
+                $message ?: 'Expected an instance of this class or to this class among his parents %2$s. Got: %s',
+                $this->typeToString($value),
+                $class
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param object|string $value
+     * @param string        $class
+     * @param string        $message
+     *
+     */
+    public function isNotA($value, $class, $message = '')
+    {
+        $this->string($class, 'Expected class as a string. Got: %s');
+
+        if (\is_a($value, $class, \is_string($value))) {
+            return new Failure(sprintf(
+                $message ?: 'Expected an instance of this class or to this class among his parents other than %2$s. Got: %s',
+                $this->typeToString($value),
+                $class
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param object|string $value
+     * @param string[]      $classes
+     * @param string        $message
+     *
+     */
+    public function isAnyOf($value, array $classes, $message = '')
+    {
+        foreach ($classes as $class) {
+            $this->string($class, 'Expected class as a string. Got: %s');
+
+            if (\is_a($value, $class, \is_string($value))) {
+                return;
+            }
+        }
+
+        return new Failure(sprintf(
+            $message ?: 'Expected an any of instance of this class or to this class among his parents other than %2$s. Got: %s',
+            $this->typeToString($value),
+            \implode(', ', \array_map(array('static', 'valueToString'), $classes))
+        ));
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function isEmpty($value, $message = '')
+    {
+        if (!empty($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an empty value. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function notEmpty($value, $message = '')
+    {
+        if (empty($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a non-empty value. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function null($value, $message = '')
+    {
+        if (null !== $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected null. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function notNull($value, $message = '')
+    {
+        if (null === $value) {
+            return new Failure(
+                $message ?: 'Expected a value other than null.'
+            );
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function true($value, $message = '')
+    {
+        if (true !== $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be true. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function false($value, $message = '')
+    {
+        if (false !== $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be false. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function notFalse($value, $message = '')
+    {
+        if (false === $value) {
+            return new Failure(
+                $message ?: 'Expected a value other than false.'
+            );
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function ip($value, $message = '')
+    {
+        if (false === \filter_var($value, \FILTER_VALIDATE_IP)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be an IP. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function ipv4($value, $message = '')
+    {
+        if (false === \filter_var($value, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be an IPv4. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function ipv6($value, $message = '')
+    {
+        if (false === \filter_var($value, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be an IPv6. Got %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function email($value, $message = '')
+    {
+        if (false === \filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to be a valid e-mail address. Got %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * Does non strict comparisons on the items, so ['3', 3] will not pass the assertion.
+     *
+     * @param array  $values
+     * @param string $message
+     *
+     */
+    public function uniqueValues(array $values, $message = '')
+    {
+        $allValues = \count($values);
+        $uniqueValues = \count(\array_unique($values));
+
+        if ($allValues !== $uniqueValues) {
+            $difference = $allValues - $uniqueValues;
+
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array of unique values, but %s of them %s duplicated',
+                $difference,
+                (1 === $difference ? 'is' : 'are')
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param mixed  $expect
+     * @param string $message
+     *
+     */
+    public function eq($value, $expect, $message = '')
+    {
+        if ($expect != $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value equal to %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($expect)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param mixed  $expect
+     * @param string $message
+     *
+     */
+    public function notEq($value, $expect, $message = '')
+    {
+        if ($expect == $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a different value than %s.',
+                $this->valueToString($expect)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $expect
+     * @param string $message
+     *
+     */
+    public function same($value, $expect, $message = '')
+    {
+        if ($expect !== $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value identical to %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($expect)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $expect
+     * @param string $message
+     *
+     */
+    public function notSame($value, $expect, $message = '')
+    {
+        if ($expect === $value) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value not identical to %s.',
+                $this->valueToString($expect)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $limit
+     * @param string $message
+     *
+     */
+    public function greaterThan($value, $limit, $message = '')
+    {
+        if ($value <= $limit) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value greater than %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($limit)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $limit
+     * @param string $message
+     *
+     */
+    public function greaterThanEq($value, $limit, $message = '')
+    {
+        if ($value < $limit) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value greater than or equal to %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($limit)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $limit
+     * @param string $message
+     *
+     */
+    public function lessThan($value, $limit, $message = '')
+    {
+        if ($value >= $limit) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value less than %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($limit)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $limit
+     * @param string $message
+     *
+     */
+    public function lessThanEq($value, $limit, $message = '')
+    {
+        if ($value > $limit) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value less than or equal to %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($limit)
+            ));
+        }
+    }
+
+    /**
+     * Inclusive range, so Assert::(3, 3, 5) passes.
+     *
+     *
+     * @param mixed  $value
+     * @param mixed  $min
+     * @param mixed  $max
+     * @param string $message
+     *
+     */
+    public function range($value, $min, $max, $message = '')
+    {
+        if ($value < $min || $value > $max) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value between %2$s and %3$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($min),
+                $this->valueToString($max)
+            ));
+        }
+    }
+
+    /**
+     * A more human-readable alias of Assert::inArray().
+     *
+     *
+     * @param mixed  $value
+     * @param array  $values
+     * @param string $message
+     *
+     */
+    public function oneOf($value, array $values, $message = '')
+    {
+        $this->inArray($value, $values, $message);
+    }
+
+    /**
+     * Does strict comparison, so Assert::inArray(3, ['3']) does not pass the assertion.
+     *
+     *
+     * @param mixed  $value
+     * @param array  $values
+     * @param string $message
+     *
+     */
+    public function inArray($value, array $values, $message = '')
+    {
+        if (!\in_array($value, $values, true)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected one of: %2$s. Got: %s',
+                $this->valueToString($value),
+                \implode(', ', \array_map(array('static', 'valueToString'), $values))
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $subString
+     * @param string $message
+     *
+     */
+    public function contains($value, $subString, $message = '')
+    {
+        if (false === \strpos($value, $subString)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($subString)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $subString
+     * @param string $message
+     *
+     */
+    public function notContains($value, $subString, $message = '')
+    {
+        if (false !== \strpos($value, $subString)) {
+            return new Failure(\sprintf(
+                $message ?: '%2$s was not expected to be contained in a value. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($subString)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function notWhitespaceOnly($value, $message = '')
+    {
+        if (\preg_match('/^\s*$/', $value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a non-whitespace string. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $prefix
+     * @param string $message
+     *
+     */
+    public function startsWith($value, $prefix, $message = '')
+    {
+        if (0 !== \strpos($value, $prefix)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to start with %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($prefix)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $prefix
+     * @param string $message
+     *
+     */
+    public function notStartsWith($value, $prefix, $message = '')
+    {
+        if (0 === \strpos($value, $prefix)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value not to start with %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($prefix)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function startsWithLetter($value, $message = '')
+    {
+        $this->string($value);
+
+        $valid = isset($value[0]);
+
+        if ($valid) {
+            $locale = \setlocale(LC_CTYPE, 0);
+            \setlocale(LC_CTYPE, 'C');
+            $valid = \ctype_alpha($value[0]);
+            \setlocale(LC_CTYPE, $locale);
+        }
+
+        if (!$valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to start with a letter. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $suffix
+     * @param string $message
+     *
+     */
+    public function endsWith($value, $suffix, $message = '')
+    {
+        if ($suffix !== \substr($value, -\strlen($suffix))) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to end with %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($suffix)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $suffix
+     * @param string $message
+     *
+     */
+    public function notEndsWith($value, $suffix, $message = '')
+    {
+        if ($suffix === \substr($value, -\strlen($suffix))) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value not to end with %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($suffix)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $pattern
+     * @param string $message
+     *
+     */
+    public function regex($value, $pattern, $message = '')
+    {
+        if (!\preg_match($pattern, $value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The value %s does not match the expected pattern.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $pattern
+     * @param string $message
+     *
+     */
+    public function notRegex($value, $pattern, $message = '')
+    {
+        if (\preg_match($pattern, $value, $matches, PREG_OFFSET_CAPTURE)) {
+            return new Failure(\sprintf(
+                $message ?: 'The value %s matches the pattern %s (at offset %d).',
+                $this->valueToString($value),
+                $this->valueToString($pattern),
+                $matches[0][1]
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function unicodeLetters($value, $message = '')
+    {
+        $this->string($value);
+
+        if (!\preg_match('/^\p{L}+$/u', $value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain only Unicode letters. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function alpha($value, $message = '')
+    {
+        $this->string($value);
+
+        $locale = \setlocale(LC_CTYPE, 0);
+        \setlocale(LC_CTYPE, 'C');
+        $valid = !\ctype_alpha($value);
+        \setlocale(LC_CTYPE, $locale);
+
+        if ($valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain only letters. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function digits($value, $message = '')
+    {
+        $locale = \setlocale(LC_CTYPE, 0);
+        \setlocale(LC_CTYPE, 'C');
+        $valid = !\ctype_digit($value);
+        \setlocale(LC_CTYPE, $locale);
+
+        if ($valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain digits only. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function alnum($value, $message = '')
+    {
+        $locale = \setlocale(LC_CTYPE, 0);
+        \setlocale(LC_CTYPE, 'C');
+        $valid = !\ctype_alnum($value);
+        \setlocale(LC_CTYPE, $locale);
+
+        if ($valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain letters and digits only. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function lower($value, $message = '')
+    {
+        $locale = \setlocale(LC_CTYPE, 0);
+        \setlocale(LC_CTYPE, 'C');
+        $valid = !\ctype_lower($value);
+        \setlocale(LC_CTYPE, $locale);
+
+        if ($valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain lowercase characters only. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function upper($value, $message = '')
+    {
+        $locale = \setlocale(LC_CTYPE, 0);
+        \setlocale(LC_CTYPE, 'C');
+        $valid = !\ctype_upper($value);
+        \setlocale(LC_CTYPE, $locale);
+
+        if ($valid) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain uppercase characters only. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param int    $length
+     * @param string $message
+     *
+     */
+    public function length($value, $length, $message = '')
+    {
+        if ($length !== $this->strlen($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain %2$s characters. Got: %s',
+                $this->valueToString($value),
+                $length
+            ));
+        }
+    }
+
+    /**
+     * Inclusive min.
+     *
+     *
+     * @param string    $value
+     * @param int|float $min
+     * @param string    $message
+     *
+     */
+    public function minLength($value, $min, $message = '')
+    {
+        if ($this->strlen($value) < $min) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain at least %2$s characters. Got: %s',
+                $this->valueToString($value),
+                $min
+            ));
+        }
+    }
+
+    /**
+     * Inclusive max.
+     *
+     *
+     * @param string    $value
+     * @param int|float $max
+     * @param string    $message
+     *
+     */
+    public function maxLength($value, $max, $message = '')
+    {
+        if ($this->strlen($value) > $max) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain at most %2$s characters. Got: %s',
+                $this->valueToString($value),
+                $max
+            ));
+        }
+    }
+
+    /**
+     * Inclusive , so Assert::lengthBetween('asd', 3, 5); passes the assertion.
+     *
+     *
+     * @param string    $value
+     * @param int|float $min
+     * @param int|float $max
+     * @param string    $message
+     *
+     */
+    public function lengthBetween($value, $min, $max, $message = '')
+    {
+        $length = $this->strlen($value);
+
+        if ($length < $min || $length > $max) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a value to contain between %2$s and %3$s characters. Got: %s',
+                $this->valueToString($value),
+                $min,
+                $max
+            ));
+        }
+    }
+
+    /**
+     * Will also pass if $value is a directory, use Assert::file() instead if you need to be sure it is a file.
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function fileExists($value, $message = '')
+    {
+        $this->string($value);
+
+        if (!\file_exists($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The file %s does not exist.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function file($value, $message = '')
+    {
+        $this->fileExists($value, $message);
+
+        if (!\is_file($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The path %s is not a file.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function directory($value, $message = '')
+    {
+        $this->fileExists($value, $message);
+
+        if (!\is_dir($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The path %s is no directory.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function readable($value, $message = '')
+    {
+        if (!\is_readable($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The path %s is not readable.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function writable($value, $message = '')
+    {
+        if (!\is_writable($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'The path %s is not writable.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function classExists($value, $message = '')
+    {
+        if (!\class_exists($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an existing class name. Got: %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed         $value
+     * @param string|object $class
+     * @param string        $message
+     *
+     */
+    public function subclassOf($value, $class, $message = '')
+    {
+        if (!\is_subclass_of($value, $class)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected a sub-class of %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($class)
+            ));
+        }
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function interfaceExists($value, $message = '')
+    {
+        if (!\interface_exists($value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an existing interface name. got %s',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $value
+     * @param mixed  $interface
+     * @param string $message
+     *
+     */
+    public function implementsInterface($value, $interface, $message = '')
+    {
+        if (!\in_array($interface, \class_implements($value))) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an implementation of %2$s. Got: %s',
+                $this->valueToString($value),
+                $this->valueToString($interface)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string|object $classOrObject
+     * @param mixed         $property
+     * @param string        $message
+     *
+     */
+    public function propertyExists($classOrObject, $property, $message = '')
+    {
+        if (!\property_exists($classOrObject, $property)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the property %s to exist.',
+                $this->valueToString($property)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string|object $classOrObject
+     * @param mixed         $property
+     * @param string        $message
+     *
+     */
+    public function propertyNotExists($classOrObject, $property, $message = '')
+    {
+        if (\property_exists($classOrObject, $property)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the property %s to not exist.',
+                $this->valueToString($property)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string|object $classOrObject
+     * @param mixed         $method
+     * @param string        $message
+     *
+     */
+    public function methodExists($classOrObject, $method, $message = '')
+    {
+        if (!\method_exists($classOrObject, $method)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the method %s to exist.',
+                $this->valueToString($method)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param string|object $classOrObject
+     * @param mixed         $method
+     * @param string        $message
+     *
+     */
+    public function methodNotExists($classOrObject, $method, $message = '')
+    {
+        if (\method_exists($classOrObject, $method)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the method %s to not exist.',
+                $this->valueToString($method)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param array      $array
+     * @param string|int $key
+     * @param string     $message
+     *
+     */
+    public function keyExists($array, $key, $message = '')
+    {
+        if (!(isset($array[$key]) || \array_key_exists($key, $array))) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the key %s to exist.',
+                $this->valueToString($key)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param array      $array
+     * @param string|int $key
+     * @param string     $message
+     *
+     */
+    public function keyNotExists($array, $key, $message = '')
+    {
+        if (isset($array[$key]) || \array_key_exists($key, $array)) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected the key %s to not exist.',
+                $this->valueToString($key)
+            ));
+        }
+    }
+
+    /**
+     * Checks if a value is a valid array key (int or string).
+     *
+     *
+     * @param mixed  $value
+     * @param string $message
+     *
+     */
+    public function validArrayKey($value, $message = '')
+    {
+        if (!(\is_int($value) || \is_string($value))) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected string or integer. Got: %s',
+                $this->typeToString($value)
+            ));
+        }
+    }
+
+    /**
+     * Does not check if $array is countable, this can generate a warning on php versions after 7.2.
+     *
+     * @param Countable|array $array
+     * @param int             $number
+     * @param string          $message
+     *
+     */
+    public function count($array, $number, $message = '')
+    {
+        $this->eq(
+            \count($array),
+            $number,
+            \sprintf(
+                $message ?: 'Expected an array to contain %d elements. Got: %d.',
+                $number,
+                \count($array)
+            )
+        );
+    }
+
+    /**
+     * Does not check if $array is countable, this can generate a warning on php versions after 7.2.
+     *
+     * @param Countable|array $array
+     * @param int|float       $min
+     * @param string          $message
+     *
+     */
+    public function minCount($array, $min, $message = '')
+    {
+        if (\count($array) < $min) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array to contain at least %2$d elements. Got: %d',
+                \count($array),
+                $min
+            ));
+        }
+    }
+
+    /**
+     * Does not check if $array is countable, this can generate a warning on php versions after 7.2.
+     *
+     * @param Countable|array $array
+     * @param int|float       $max
+     * @param string          $message
+     *
+     */
+    public function maxCount($array, $max, $message = '')
+    {
+        if (\count($array) > $max) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array to contain at most %2$d elements. Got: %d',
+                \count($array),
+                $max
+            ));
+        }
+    }
+
+    /**
+     * Does not check if $array is countable, this can generate a warning on php versions after 7.2.
+     *
+     * @param Countable|array $array
+     * @param int|float       $min
+     * @param int|float       $max
+     * @param string          $message
+     *
+     */
+    public function countBetween($array, $min, $max, $message = '')
+    {
+        $count = \count($array);
+
+        if ($count < $min || $count > $max) {
+            return new Failure(\sprintf(
+                $message ?: 'Expected an array to contain between %2$d and %3$d elements. Got: %d',
+                $count,
+                $min,
+                $max
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $array
+     * @param string $message
+     *
+     */
+    public function isList($array, $message = '')
+    {
+        if (!\is_array($array) || $array !== \array_values($array)) {
+            return new Failure(
+                $message ?: 'Expected list - non-associative array.'
+            );
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $array
+     * @param string $message
+     *
+     */
+    public function isNonEmptyList($array, $message = '')
+    {
+        $this->isList($array, $message);
+        $this->notEmpty($array, $message);
+    }
+
+    /**
+     *
+     * @param mixed  $array
+     * @param string $message
+     *
+     */
+    public function isMap($array, $message = '')
+    {
+        if (
+            !\is_array($array) ||
+            \array_keys($array) !== \array_filter(\array_keys($array), '\is_string')
+        ) {
+            return new Failure(
+                $message ?: 'Expected map - associative array with string keys.'
+            );
+        }
+    }
+
+    /**
+     *
+     * @param mixed  $array
+     * @param string $message
+     *
+     */
+    public function isNonEmptyMap($array, $message = '')
+    {
+        $this->isMap($array, $message);
+        $this->notEmpty($array, $message);
+    }
+
+    /**
+     *
+     * @param string $value
+     * @param string $message
+     *
+     */
+    public function uuid($value, $message = '')
+    {
+        $value = \str_replace(array('urn:', 'uuid:', '{', '}'), '', $value);
+
+        // The nil UUID is special form of UUID that is specified to have all
+        // 128 bits set to zero.
+        if ('00000000-0000-0000-0000-000000000000' === $value) {
+            return;
+        }
+
+        if (!\preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $value)) {
+            return new Failure(\sprintf(
+                $message ?: 'Value %s is not a valid UUID.',
+                $this->valueToString($value)
+            ));
+        }
+    }
+
+    /**
+     *
+     * @param Closure $expression
+     * @param string  $class
+     * @param string  $message
+     *
+     */
+    public function throws(Closure $expression, $class = 'Exception', $message = '')
+    {
+        $this->string($class);
+
+        $actual = 'none';
+
+        try {
+            $expression();
+        } catch (Exception $e) {
+            $actual = \get_class($e);
+            if ($e instanceof $class) {
+                return;
+            }
+        } catch (Throwable $e) {
+            $actual = \get_class($e);
+            if ($e instanceof $class) {
+                return;
+            }
+        }
+
+        return new Failure($message ?: \sprintf(
+            'Expected to throw "%s", got "%s"',
+            $class,
+            $actual
+        ));
+    }
+
+
+    /**
+     * @param mixed $value
+     *
+     * @return string
+     */
+    protected function valueToString($value)
+    {
+        if (null === $value) {
+            return 'null';
+        }
+
+        if (true === $value) {
+            return 'true';
+        }
+
+        if (false === $value) {
+            return 'false';
+        }
+
+        if (\is_array($value)) {
+            return 'array';
+        }
+
+        if (\is_object($value)) {
+            if (\method_exists($value, '__toString')) {
+                return \get_class($value).': '.self::valueToString($value->__toString());
+            }
+
+            if ($value instanceof DateTime || $value instanceof DateTimeImmutable) {
+                return \get_class($value).': '.self::valueToString($value->format('c'));
+            }
+
+            return \get_class($value);
+        }
+
+        if (\is_resource($value)) {
+            return 'resource';
+        }
+
+        if (\is_string($value)) {
+            return '"'.$value.'"';
+        }
+
+        return (string) $value;
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return string
+     */
+    protected function typeToString($value)
+    {
+        return \is_object($value) ? \get_class($value) : \gettype($value);
+    }
+
+    protected function strlen($value)
+    {
+        if (!\function_exists('mb_detect_encoding')) {
+            return \strlen($value);
+        }
+
+        if (false === $encoding = \mb_detect_encoding($value)) {
+            return \strlen($value);
+        }
+
+        return \mb_strlen($value, $encoding);
+    }
+
+    /**
+     * EXPERIMENTAL - Tries to make the API easier to use.
+     * Caller passes simple strings instead of anonymous function closure.
+     * Downside: passing string method name.  Needs to be visible to IDE/Stan.
+     *
      * @param $method
      * @param string $message
      *
@@ -59,11 +1781,14 @@ class Validator
         );
     }
 
-    public function createString($message): callable
-    {
-        return $this->create("string", $message);
-    }
-
+    /**
+     * A Functional Either Monad.
+     * Returns a closure which will produce Either the Left (Success) or
+     * Right (Failure) value.
+     * @param callable $fn
+     *
+     * @return callable
+     */
     public function railway_bind(callable $fn): callable
     {
         return fn($param): Result => $param instanceof Failure
@@ -71,6 +1796,12 @@ class Validator
             : $fn($param->value());
     }
 
+    /**
+     * Returns a closure that will call all of the passed functions in order.
+     * @param callable ...$fns
+     *
+     * @return callable
+     */
     public function compose(callable ...$fns): callable
     {
         return function ($x) use ($fns) {
