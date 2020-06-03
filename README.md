@@ -1,5 +1,10 @@
 # Validator
 
+[![Latest stable release][version-badge]][link-packagist]
+[![Software license][license-badge]](LICENSE)
+[![Total downloads][downloads-badge]][link-packagist]
+[![Total stars][stars-badge]][link-github]
+
 This library contains efficient [functional programming] (FP) routines
 to test the input and output parameters of your methods. With these
 validations, you can greatly reduce the amount of coding needed to
@@ -38,3 +43,11 @@ All contents of this package are licensed under the [GPL v3].
 [Chris Johnson]: https://github.com/cxj
 [GPL v3]: https://github.com/cxj/validator/blob/master/LICENSE
 [functional programming]: https://en.wikipedia.org/wiki/Functional_programming
+
+[link-github]: https://github.com/cxj/validator
+[link-packagist]: https://packagist.org/packages/cxj/validator
+
+[version-badge]: https://img.shields.io/packagist/v/cxj/validator.svg?label=stable
+[license-badge]: https://img.shields.io/badge/license-GPL-informational.svg
+[downloads-badge]: https://img.shields.io/packagist/dt/cxj/validator.svg?color=brightgreen
+[stars-badge]: https://img.shields.io/github/stars/cxj/validator.svg?color=brightgreen
