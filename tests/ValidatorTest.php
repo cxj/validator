@@ -34,6 +34,37 @@ class ValidationTest extends TestCase
     }
 
     /**
+     * FIXME: factor this out.
+     *
+     * @param $exceptionName
+     * @param string $exceptionMessage
+     * @param null $exceptionCode
+     */
+    public function setExpectedException(
+        $exceptionName,
+        $exceptionMessage = '',
+        $exceptionCode = null
+    )
+    {
+        if (method_exists($this, 'expectException')) {
+            $this->expectException($exceptionName);
+            if ($exceptionMessage) {
+                $this->expectExceptionMessage($exceptionMessage);
+            }
+            if ($exceptionCode) {
+                $this->expectExceptionCode($exceptionCode);
+            }
+
+            return;
+        }
+        parent::setExpectedException(
+            $exceptionName,
+            $exceptionMessage,
+            $exceptionCode
+        );
+    }
+
+    /**
      * This is a PHPUnit dataProvider!
      * PHPUnit will call tests which mention this provider in an annotation
      * once for each set of values (inner arrays below).
@@ -687,14 +718,33 @@ class ValidationTest extends TestCase
         // error_log(" args = " . var_export($args, true));  // DEBUG
         error_log("count of args: " . count($args));    // DEBUG
 
-        if (count($args) > 1) {
-            $v      = $this->validator->create2($method);
-            $result = $v(Success::of($args[0]), Success::of($args[1]));
+        switch (count($args)) {
+            case 1:
+                $v      = $this->validator->create($method);
+                $result = $v(Success::of($args[0]));
+
+                break;
+            case 2:
+                $v      = $this->validator->create2($method);
+                $result = $v(Success::of($args[0]), $args[1]);
+                break;
+            case 3:
+                $v      = $this->validator->create3($method);
+                $result = $v(Success::of($args[0]), $args[1], $args[2]);
+
+                break;
+            case 4:
+                $v      = $this->validator->create4($method);
+                $result =
+                    $v(Success::of($args[0]), $args[1], $args[2], $args[3]);
+
+                break;
+            default:
+                // FIXME
+                die("We cannot handle " . count($args) . " arguments");
         }
-        else {
-            $v      = $this->validator->create($method);
-            $result = $v(Success::of($args[0]));
-        }
+
+
         if ($success) {
             $this->assertInstanceOf(Success::class, $result);
             $this->assertEquals($args[0], $result->value());
@@ -707,13 +757,13 @@ class ValidationTest extends TestCase
             );
         }
 
-        // call_user_func_array(['Cxj\Validator\Validator', $method], $args);
+        // call_user_func_array([$this->validator, $method], $args);
 
         $this->addToAssertionCount(1);
     }
 
     /**
-     * @dataProvider FOO getTests
+     * @dataProvider getTests
      */
     public function testNullOr(
         $method,
@@ -739,26 +789,26 @@ class ValidationTest extends TestCase
         }
 
         call_user_func_array(
-            ['Cxj\Validator\Validator', 'nullOr' . ucfirst($method)],
+            [$this->validator, 'nullOr' . ucfirst($method)],
             $args
         );
         $this->addToAssertionCount(1);
     }
 
     /**
-     * @dataProvider XXgetMethods
+     * @dataProvider getMethods
      */
     public function testNullOrAcceptsNull($method)
     {
         call_user_func(
-            ['Cxj\Validator\Validator', 'nullOr' . ucfirst($method)],
+            [$this->validator, 'nullOr' . ucfirst($method)],
             null
         );
         $this->addToAssertionCount(1);
     }
 
     /**
-     * @dataProvider XXgetTests
+     * @dataProvider getTests
      */
     public function testAllArray(
         $method,
@@ -787,14 +837,14 @@ class ValidationTest extends TestCase
         array_unshift($args, [$arg]);
 
         call_user_func_array(
-            ['Cxj\Validator\Validator', 'all' . ucfirst($method)],
+            [$this->validator, 'all' . ucfirst($method)],
             $args
         );
         $this->addToAssertionCount(1);
     }
 
     /**
-     * @dataProvider XXgetTests
+     * @dataProvider getTests
      */
     public function testAllTraversable(
         $method,
@@ -823,7 +873,7 @@ class ValidationTest extends TestCase
         array_unshift($args, new ArrayIterator([$arg]));
 
         call_user_func_array(
-            ['Cxj\Validator\Validator', 'all' . ucfirst($method)],
+            [$this->validator, 'all' . ucfirst($method)],
             $args
         );
         $this->addToAssertionCount(1);
@@ -879,26 +929,28 @@ class ValidationTest extends TestCase
 
     /**
      * @dataProvider getStringConversions
+     *
+     * @param string $method
+     * @param array $args
+     * @param string $exceptionMessage
      */
     public function testConvertValuesToStrings(
-        $method,
-        $args,
-        $exceptionMessage
+        string $method,
+        array $args,
+        string $exceptionMessage
     )
     {
-        $this->setExpectedException(
-            '\InvalidArgumentException',
-            $exceptionMessage
-        );
-
-        call_user_func_array(['Cxj\Validator\Validator', $method], $args);
+        $return = call_user_func_array([$this->validator, $method], $args);
+        $this->assertInstanceOf(Failure::class, $return);
     }
 
     public function testAnUnknownMethodThrowsABadMethodCall()
     {
         $this->setExpectedException('\BadMethodCallException');
 
-        Assert::nonExistentMethod();
+        // FIXME
+        // Assert::nonExistentMethod();
+        $this->validator->isBadMethod();
     }
 }
 

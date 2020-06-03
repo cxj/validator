@@ -10,6 +10,7 @@
 namespace Cxj\Validator;
 
 use ArrayAccess;
+use BadMethodCallException;
 use Closure;
 use Countable;
 use DateTime;
@@ -273,10 +274,10 @@ class Validator
     }
 
     /**
-     *
      * @param mixed $value
      * @param string $message
      *
+     * @return Result
      */
     public function isArray($value, $message = '')
     {
@@ -284,36 +285,6 @@ class Validator
             return new Failure(
                 \sprintf(
                     $message ?: 'Expected an array. Got: %s',
-                    $this->typeToString($value)
-                )
-            );
-        }
-
-        return Success::of($value);
-    }
-
-    /**
-     *
-     * @param mixed $value
-     * @param string $message
-     *
-     * @deprecated use "isIterable" or "isInstanceOf" instead
-     *
-     */
-    public function isTraversable($value, $message = '')
-    {
-        @\trigger_error(
-            \sprintf(
-                'The "%s" assertion is deprecated. You should stop using it, as it will soon be removed in 2.0 version. Use "isIterable" or "isInstanceOf" instead.',
-                __METHOD__
-            ),
-            \E_USER_DEPRECATED
-        );
-
-        if (!\is_array($value) && !($value instanceof Traversable)) {
-            return new Failure(
-                \sprintf(
-                    $message ?: 'Expected a traversable. Got: %s',
                     $this->typeToString($value)
                 )
             );
@@ -432,21 +403,13 @@ class Validator
     }
 
     /**
-     *
      * @param mixed $value
-     *
-     * @XXparam array<object|string> $classes
-     *
+     * @param array<object|string> $classes
      * @param string $message
-     *
+     * @return Result
      */
     public function isInstanceOfAny($value, $classes, $message = '')
     {
-        // DEBUG
-        error_log(__METHOD__ . " value: " . $this->valueToString($value));
-        error_log(__METHOD__ . " classes: " . var_export($classes, true));
-        // END DEBUG
-
         foreach ($classes as $class) {
             if ($value instanceof $class) {
                 return Success::of($value);
@@ -514,11 +477,10 @@ class Validator
     }
 
     /**
-     *
      * @param object|string $value
      * @param string[] $classes
      * @param string $message
-     *
+     * @return Result
      */
     public function isAnyOf($value, array $classes, $message = '')
     {
@@ -526,7 +488,7 @@ class Validator
             $this->string($class, 'Expected class as a string. Got: %s');
 
             if (\is_a($value, $class, \is_string($value))) {
-                return;
+                return Success::of($value);
             }
         }
 
@@ -540,15 +502,12 @@ class Validator
                 )
             )
         );
-
-        return Success::of($value);
     }
 
     /**
-     *
      * @param mixed $value
      * @param string $message
-     *
+     * @return Result
      */
     public function isEmpty($value, $message = '')
     {
@@ -766,7 +725,7 @@ class Validator
      */
     public function uniqueValues(array $values, $message = '')
     {
-        $allValues = \count($values);
+        $allValues    = \count($values);
         $uniqueValues = \count(\array_unique($values));
 
         if ($allValues !== $uniqueValues) {
@@ -957,14 +916,12 @@ class Validator
     }
 
     /**
-     * Inclusive range, so Assert::(3, 3, 5) passes.
-     *
-     *
+     * Inclusive range, so (3, 3, 5) passes.    TODO
      * @param mixed $value
      * @param mixed $min
      * @param mixed $max
      * @param string $message
-     *
+     * @return Result
      */
     public function range($value, $min, $max, $message = '')
     {
@@ -983,13 +940,11 @@ class Validator
     }
 
     /**
-     * A more human-readable alias of Assert::inArray().
-     *
-     *
+     * A more human-readable alias of inArray().    TODO
      * @param mixed $value
      * @param array $values
      * @param string $message
-     *
+     * @return Result
      */
     public function oneOf($value, array $values, $message = '')
     {
@@ -2075,6 +2030,39 @@ class Validator
 
 
     /**
+     * @throws BadMethodCallException
+     */
+    public function __call($name, $arguments)
+    {
+        if ('nullOr' === \substr($name, 0, 6)) {
+            if (null !== $arguments[0]) {
+                $method = \lcfirst(\substr($name, 6));
+                \call_user_func_array([$this, $method], $arguments);    // todo
+            }
+
+            return;
+        }
+
+        if ('all' === \substr($name, 0, 3)) {
+            $this->isIterable($arguments[0]);
+
+            $method = \lcfirst(\substr($name, 3));
+            $args = $arguments;
+
+            foreach ($arguments[0] as $entry) {
+                $args[0] = $entry;
+
+                \call_user_func_array([$this, $method], $args); // todo
+            }
+
+            return;
+        }
+
+        throw new BadMethodCallException('No such method: '.$name);
+    }
+
+
+    /**
      * @param mixed $value
      *
      * @return string
@@ -2162,7 +2150,7 @@ class Validator
     {
         $callable = [$this, $method];
 
-        return $this->railway_bind(
+        return $this->bind1param(
             fn($s): Result => $callable($s, $message)
         );
     }
@@ -2171,21 +2159,8 @@ class Validator
     {
         $callable = [$this, $method];
 
-        /*
-        return $this->railway_bind(
-            fn($s, $t): Result => $callable($s, $t, $message)
-        );
-        */
-
-        return $this->railway_bind2(
-            function ($s, $t) use ($callable, $message) {
-                // DEBUG
-                error_log("anon callable: " . $this->valueToString($callable));
-                error_log("anon called with s: " . print_r($s, true));
-                error_log("anon called with t: " . print_r($t, true));
-                // END DEBUG
-                $callable($s, $t, $message);
-            }
+        return $this->bind2param(
+            fn($p1, $p2): Result => $callable($p1, $p2, $message)
         );
     }
 
@@ -2198,11 +2173,17 @@ class Validator
      *
      * @return callable
      */
-    public function railway_bind(callable $fn): callable
+    public function bind1param(callable $fn): callable
     {
         return fn($param): Result => $param instanceof Failure
             ? $param
             : $fn($param->value());
+    }
+
+    public function bind2param(callable $fn): callable {
+        return fn($param, $p2): Result => $param instanceof Failure
+            ? $param
+            : $fn($param->value(), $p2);
     }
 
     /**
