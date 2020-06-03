@@ -2,7 +2,7 @@
     "name": "cxj/validator",
     "type": "library",
     "description": "functional programming parameter validation",
-    "license": "GPL-v3",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Chris Johnson"
