@@ -2291,6 +2291,12 @@ class Validator
      * Caller passes simple strings instead of anonymous function closure.
      * Downside: passing string method name.  Needs to be visible to IDE/Stan.
      *
+     * There are 3 of these, for the number of parameters to be passed,
+     * because the invariant $message has to be last to have a default value,
+     * but using the spread operator ... would also have to be last.  They
+     * can't both be there!  There may be a clever way to refactor this to
+     * just one method, but I haven't found it yet.
+     *
      * @param string $method
      * @param string $message
      *
@@ -2301,7 +2307,7 @@ class Validator
         $callable = [$this, $method];
 
         return $this->bind(
-            fn($s): Result => $callable($s, $message)
+            fn($p1): Result => $callable($p1, $message)
         );
     }
 
