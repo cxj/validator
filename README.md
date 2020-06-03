@@ -1,6 +1,6 @@
 # Validator
 
-This library contains efficient functional programming (FP) routines
+This library contains efficient [functional programming] (FP) routines
 to test the input and output parameters of your methods. With these
 validations, you can greatly reduce the amount of coding needed to
 write a safe implementation.
@@ -37,3 +37,4 @@ All contents of this package are licensed under the [GPL v3].
 [Git repository]: https://github.com/cxj/validator
 [Chris Johnson]: https://github.com/cxj
 [GPL v3]: https://github.com/cxj/validator/blob/master/LICENSE
+[functional programming]: https://en.wikipedia.org/wiki/Functional_programming
