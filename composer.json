@@ -23,5 +23,11 @@
         "phpunit/phpunit": "^9.1",
         "phpstan/phpstan": "^0.12.25",
         "phpstan/phpstan-phpunit": "^0.12.8"
+    },
+
+    "autoload-dev": {
+        "psr-4": {
+            "Cxj\\Validator\\Tests\\": "tests/"
+        }
     }
 }
