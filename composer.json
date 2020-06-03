@@ -1,8 +1,8 @@
 {
     "name": "cxj/validator",
     "type": "library",
-    "description": "functional-style parameter checking library",
-    "license": "MIT",
+    "description": "functional programming parameter validation",
+    "license": "GPL-v3",
     "authors": [
         {
             "name": "Chris Johnson"
