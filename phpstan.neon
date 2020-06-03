@@ -1,5 +1,12 @@
 parameters:
 	checkMissingIterableValueType: false
+	ignoreErrors:
+		-
+			message: '#Instanceof between mixed and *#'
+			path: src/Validator.php
+			count: 2
+	autoload_directories:
+		- tests
 	level: 6
 	paths:
 		- src

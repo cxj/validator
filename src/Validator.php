@@ -2313,6 +2313,15 @@ class Validator
         );
     }
 
+    public function create3(string $method, string $message = ''): callable
+    {
+        $callable = [$this, $method];
+
+        return $this->bind3param(
+            fn($p1, $p2, $p3): Result => $callable($p1, $p2, $p3, $message)
+        );
+    }
+
     /**
      * A Functional Either Monad.
      * Returns a closure which will produce Either the Left (Success) or
@@ -2333,6 +2342,13 @@ class Validator
         return fn($param, $p2): Result => $param instanceof Failure
             ? $param
             : $fn($param->value(), $p2);
+    }
+
+
+    public function bind3param(callable $fn): callable {
+        return fn($param, $p2, $p3): Result => $param instanceof Failure
+            ? $param
+            : $fn($param->value(), $p2, $p3);
     }
 
     /**

@@ -12,6 +12,9 @@ use stdClass;
 class ValidationTest extends TestCase
 {
     protected Validator\Validator $validator;
+    /**
+     * @var resource $resource
+     */
     protected static $resource;
 
     public function setUp(): void
@@ -24,8 +27,12 @@ class ValidationTest extends TestCase
         @fclose(self::$resource);
     }
 
+    /**
+     * @return resource
+     */
     public static function getResource()
     {
+        /** @phpstan-ignore-next-line */
         if (!static::$resource) {
             static::$resource = fopen(__FILE__, 'r');
         }
@@ -33,36 +40,6 @@ class ValidationTest extends TestCase
         return static::$resource;
     }
 
-    /**
-     * FIXME: factor this out.
-     *
-     * @param $exceptionName
-     * @param string $exceptionMessage
-     * @param null $exceptionCode
-     */
-    public function setExpectedException(
-        $exceptionName,
-        $exceptionMessage = '',
-        $exceptionCode = null
-    )
-    {
-        if (method_exists($this, 'expectException')) {
-            $this->expectException($exceptionName);
-            if ($exceptionMessage) {
-                $this->expectExceptionMessage($exceptionMessage);
-            }
-            if ($exceptionCode) {
-                $this->expectExceptionCode($exceptionCode);
-            }
-
-            return;
-        }
-        parent::setExpectedException(
-            $exceptionName,
-            $exceptionMessage,
-            $exceptionCode
-        );
-    }
 
     /**
      * This is a PHPUnit dataProvider!
@@ -670,7 +647,11 @@ class ValidationTest extends TestCase
         ];
     }
 
-    public function getMethods()
+    /**
+     * This is a data provider for PHPUnit.
+     * @return array
+     */
+    public function getMethods(): array
     {
         $methods = [];
 
@@ -684,11 +665,11 @@ class ValidationTest extends TestCase
     /**
      * @dataProvider getTests
      *
-     * @param $method
-     * @param $args
-     * @param $success
+     * @param string $method
+     * @param array $args
+     * @param bool $success
      * @param bool $multibyte
-     * @param int $minVersion
+     * @param int|null $minVersion
      */
     public function testValidator(
         string $method,
@@ -709,41 +690,27 @@ class ValidationTest extends TestCase
             $this->markTestSkipped('The function mb_strlen() is not available');
         }
 
-        /*
-        if (!$success) {
-            $this->setExpectedException('\InvalidArgumentException');
-        }
-        */
-
-        // error_log(" args = " . var_export($args, true));  // DEBUG
-        error_log("count of args: " . count($args));    // DEBUG
-
         switch (count($args)) {
             case 1:
                 $v      = $this->validator->create($method);
                 $result = $v(Success::of($args[0]));
-
                 break;
+
             case 2:
                 $v      = $this->validator->create2($method);
                 $result = $v(Success::of($args[0]), $args[1]);
                 break;
+
             case 3:
                 $v      = $this->validator->create3($method);
                 $result = $v(Success::of($args[0]), $args[1], $args[2]);
-
                 break;
-            case 4:
-                $v      = $this->validator->create4($method);
-                $result =
-                    $v(Success::of($args[0]), $args[1], $args[2], $args[3]);
 
-                break;
             default:
-                // FIXME
-                die("We cannot handle " . count($args) . " arguments");
+                $msg = "cannot handle " . count($args) . "parameters";
+                $this->assertTrue(false, $msg);
+                $result = new Failure($msg);
         }
-
 
         if ($success) {
             $this->assertInstanceOf(Success::class, $result);
@@ -751,27 +718,27 @@ class ValidationTest extends TestCase
         }
         else {
             $this->assertInstanceOf(Failure::class, $result);
-            $this->assertEquals(
-                "Is not a string: integer",
-                $result->getMessage()
-            );
         }
-
-        // call_user_func_array([$this->validator, $method], $args);
 
         $this->addToAssertionCount(1);
     }
 
     /**
      * @dataProvider getTests
+     *
+     * @param string $method
+     * @param array $args
+     * @param bool $success
+     * @param bool $multibyte
+     * @param int|null $minVersion
      */
     public function testNullOr(
-        $method,
-        $args,
-        $success,
-        $multibyte = false,
-        $minVersion = null
-    )
+        string $method,
+        array $args,
+        bool $success,
+        bool $multibyte = false,
+        int $minVersion = null
+    ): void
     {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
@@ -785,7 +752,7 @@ class ValidationTest extends TestCase
         }
 
         if (!$success && null !== reset($args)) {
-            $this->setExpectedException('\InvalidArgumentException');
+            $this->expectException('\InvalidArgumentException');
         }
 
         call_user_func_array(
@@ -797,8 +764,10 @@ class ValidationTest extends TestCase
 
     /**
      * @dataProvider getMethods
+     *
+     * @param string $method
      */
-    public function testNullOrAcceptsNull($method)
+    public function testNullOrAcceptsNull(string $method): void
     {
         call_user_func(
             [$this->validator, 'nullOr' . ucfirst($method)],
@@ -809,14 +778,20 @@ class ValidationTest extends TestCase
 
     /**
      * @dataProvider getTests
+     *
+     * @param string $method
+     * @param array $args
+     * @param bool $success
+     * @param bool $multibyte
+     * @param int|null $minVersion
      */
     public function testAllArray(
-        $method,
-        $args,
-        $success,
-        $multibyte = false,
-        $minVersion = null
-    )
+        string $method,
+        array $args,
+        bool $success,
+        bool $multibyte = false,
+        int $minVersion = null
+    ): void
     {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
@@ -830,7 +805,7 @@ class ValidationTest extends TestCase
         }
 
         if (!$success) {
-            $this->setExpectedException('\InvalidArgumentException');
+            $this->expectException('\InvalidArgumentException');
         }
 
         $arg = array_shift($args);
@@ -845,14 +820,20 @@ class ValidationTest extends TestCase
 
     /**
      * @dataProvider getTests
+     *
+     * @param string $method
+     * @param array $args
+     * @param bool $success
+     * @param bool $multibyte
+     * @param int|null $minVersion
      */
     public function testAllTraversable(
-        $method,
-        $args,
-        $success,
-        $multibyte = false,
-        $minVersion = null
-    )
+        string $method,
+        array $args,
+        bool $success,
+        bool $multibyte = false,
+        int $minVersion = null
+    ): void
     {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
@@ -866,7 +847,7 @@ class ValidationTest extends TestCase
         }
 
         if (!$success) {
-            $this->setExpectedException('\InvalidArgumentException');
+            $this->expectException('\InvalidArgumentException');
         }
 
         $arg = array_shift($args);
@@ -879,7 +860,12 @@ class ValidationTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function getStringConversions()
+    /**
+     * PHPUnit data provider.
+     *
+     * @return array|array[]
+     */
+    public function getStringConversions(): array
     {
         return [
             ['integer', ['foobar'], 'Expected an integer. Got: string'],
@@ -938,19 +924,20 @@ class ValidationTest extends TestCase
         string $method,
         array $args,
         string $exceptionMessage
-    )
+    ): void
     {
         $return = call_user_func_array([$this->validator, $method], $args);
         $this->assertInstanceOf(Failure::class, $return);
     }
 
-    public function testAnUnknownMethodThrowsABadMethodCall()
+    /**
+     * Test for attempt to call nonexistent validation method.
+     */
+    public function testAnUnknownMethodThrowsABadMethodCall(): void
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException('\BadMethodCallException');
 
-        // FIXME
-        // Assert::nonExistentMethod();
-        $this->validator->isBadMethod();
+        $this->validator->isBadMethod();    /** @phpstan-ignore-line */
     }
 }
 
@@ -959,18 +946,25 @@ class ValidationTest extends TestCase
  */
 class ToStringClass
 {
-
     /**
      * @var string
      */
-    private $value;
+    private string $value;
 
-    public function __construct($value)
+    /**
+     * ToStringClass constructor.
+     *
+     * @param string $value
+     */
+    public function __construct(string $value)
     {
         $this->value = $value;
     }
 
-    public function __toString()
+    /**
+     * @return string
+     */
+    public function __toString(): string
     {
         return $this->value;
     }
