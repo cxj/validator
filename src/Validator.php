@@ -17,6 +17,7 @@ use DateTime;
 use DateTimeImmutable;
 use Exception;
 use ResourceBundle;
+use SebastianBergmann\Comparator\ComparisonFailureTest;
 use SimpleXMLElement;
 use Throwable;
 use Traversable;
@@ -1010,15 +1011,15 @@ class Validator
     }
 
     /**
-     * Inclusive range, so (3, 3, 5) passes.    TODO
+     * Inclusive range, so (3, 3, 5) passes.
+     *
      * @param mixed $value
      * @param mixed $min
      * @param mixed $max
      * @param string $message
      * @return Result
-     * @return Result
      */
-    public function range($value, $min, $max, $message = '')
+    public function range($value, $min, $max, string $message = ''): Result
     {
         if ($value < $min || $value > $max) {
             return new Failure(
@@ -2299,7 +2300,7 @@ class Validator
     {
         $callable = [$this, $method];
 
-        return $this->bind1param(
+        return $this->bind(
             fn($s): Result => $callable($s, $message)
         );
     }
@@ -2308,7 +2309,7 @@ class Validator
     {
         $callable = [$this, $method];
 
-        return $this->bind2param(
+        return $this->bind(
             fn($p1, $p2): Result => $callable($p1, $p2, $message)
         );
     }
@@ -2317,7 +2318,7 @@ class Validator
     {
         $callable = [$this, $method];
 
-        return $this->bind3param(
+        return $this->bind(
             fn($p1, $p2, $p3): Result => $callable($p1, $p2, $p3, $message)
         );
     }
@@ -2331,24 +2332,14 @@ class Validator
      *
      * @return callable
      */
-    public function bind1param(callable $fn): callable
-    {
-        return fn($param): Result => $param instanceof Failure
-            ? $param
-            : $fn($param->value());
-    }
-
-    public function bind2param(callable $fn): callable {
-        return fn($param, $p2): Result => $param instanceof Failure
-            ? $param
-            : $fn($param->value(), $p2);
-    }
-
-
-    public function bind3param(callable $fn): callable {
-        return fn($param, $p2, $p3): Result => $param instanceof Failure
-            ? $param
-            : $fn($param->value(), $p2, $p3);
+    public function bind(callable $fn): callable {
+        return function ( ...$params) use ($fn) {
+            if ($params instanceof Failure) {
+                return $params;
+            }
+            $value = array_shift($params);
+            return $fn($value->value(), ...$params);
+        };
     }
 
     /**
