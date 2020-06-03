@@ -1,5 +1,5 @@
 {
-    "name": "cxj/validation",
+    "name": "cxj/validator",
     "type": "library",
     "description": "functional-style parameter checking library",
     "license": "MIT",
