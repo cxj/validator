@@ -27,12 +27,13 @@ Contributions to the package are always welcome!
 
 License
 -------
-All contents of this package are licensed under the [MIT license].
+All contents of this package are licensed under the [GPL v3].
 
 
 [book]: https://leanpub.com/thinking-functionally-in-php
 [assert package]: https://github.com/beberlei/assert
 [revised version]: https://github.com/webmozart/assert
-[issue tracker]:
-[Git repository]:
-[Chris Johnson]: https://github.com/cxj
+[issue tracker]: https://github.com/cxj/validator
+[Git repository]: https://github.com/cxj/validator
+[Chris Johnson]: https://github.com/
+[GPL v3]: https://github.com/cxj/validator/blob/master/LICENSE
