@@ -3,13 +3,18 @@
 namespace Cxj\Validator\Tests;
 
 use ArrayIterator;
+use ArrayObject;
 use Cxj\Validator;
 use Cxj\Validator\Failure;
 use Cxj\Validator\Success;
+use Error;
+use Exception;
+use LogicException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use stdClass;
 
-class ValidationTest extends TestCase
+class ValidatorTest extends TestCase
 {
     protected Validator\Validator $validator;
     /**
@@ -60,7 +65,6 @@ class ValidationTest extends TestCase
          */
         return [
             ['string', ['value'], true],
-            /*
             ['string', [''], true],
             ['string', [1234], false],
             ['stringNotEmpty', ['value'], true],
@@ -120,11 +124,6 @@ class ValidationTest extends TestCase
             ['isArray', [new ArrayIterator([])], false],
             ['isArray', [123], false],
             ['isArray', [new stdClass()], false],
-            ['isTraversable', [[]], true],
-            ['isTraversable', [[1, 2, 3]], true],
-            ['isTraversable', [new ArrayIterator([])], true],
-            ['isTraversable', [123], false],
-            ['isTraversable', [new stdClass()], false],
             ['isArrayAccessible', [[]], true],
             ['isArrayAccessible', [[1, 2, 3]], true],
             ['isArrayAccessible', [new ArrayObject([])], true],
@@ -150,13 +149,12 @@ class ValidationTest extends TestCase
             ['notInstanceOf', [new stdClass(), 'stdClass'], false],
             ['notInstanceOf', [new Exception(), 'stdClass'], true],
             ['notInstanceOf', [123, 'stdClass'], true],
-            ['notInstanceOf', [[], 'stdClass'], true], */
+            ['notInstanceOf', [[], 'stdClass'], true],
             [
                 'isInstanceOfAny',
                 [new ArrayIterator(), ['Iterator', 'ArrayAccess']],
                 true,
             ],
-            /*
             [
                 'isInstanceOfAny',
                 [new Exception(), ['Exception', 'Countable']],
@@ -446,7 +444,7 @@ class ValidationTest extends TestCase
             ['classExists', [__NAMESPACE__ . '\Foobar'], false],
             [
                 'subclassOf',
-                [__CLASS__, 'Cxj\Validation\Tests\TestCase'],
+                [__CLASS__, \PHPUnit\Framework\TestCase::class],
                 true,
             ],
             ['subclassOf', [__CLASS__, 'stdClass'], false],
@@ -570,7 +568,14 @@ class ValidationTest extends TestCase
                 ],
                 false,
             ],
-            ['throws', [function () { throw new Exception('test'); }], true],
+            [
+                'throws',
+                [
+                    function () { throw new Exception('test'); },
+                    'Exception',
+                ],
+                true,
+            ],
             [
                 'throws',
                 [function () { trigger_error('test'); }, 'Throwable'],
@@ -643,7 +648,6 @@ class ValidationTest extends TestCase
             ['uniqueValues', [['qwerty', 'qwerty']], false],
             ['uniqueValues', [['asdfg', 'qwerty']], true],
             ['uniqueValues', [[123, '123']], false],
-            */
         ];
     }
 
@@ -713,11 +717,18 @@ class ValidationTest extends TestCase
         }
 
         if ($success) {
-            $this->assertInstanceOf(Success::class, $result);
-            $this->assertEquals($args[0], $result->value());
+            $this->assertInstanceOf(
+                Success::class,
+                $result,
+                ($result instanceof Failure) ? $result->getMessage() : "Success"
+            );
         }
         else {
-            $this->assertInstanceOf(Failure::class, $result);
+            $this->assertInstanceOf(
+                Failure::class,
+                $result,
+                $result->getMessage()
+            );
         }
 
         $this->addToAssertionCount(1);
@@ -751,14 +762,43 @@ class ValidationTest extends TestCase
             $this->markTestSkipped('The function mb_strlen() is not available');
         }
 
-        if (!$success && null !== reset($args)) {
-            $this->expectException('\InvalidArgumentException');
+        switch (count($args)) {
+            case 1:
+                $v      = $this->validator->create($method);
+                $result = $v(Success::of($args[0]));
+                break;
+
+            case 2:
+                $v      = $this->validator->create2($method);
+                $result = $v(Success::of($args[0]), $args[1]);
+                break;
+
+            case 3:
+                $v      = $this->validator->create3($method);
+                $result = $v(Success::of($args[0]), $args[1], $args[2]);
+                break;
+
+            default:
+                $msg = "cannot handle " . count($args) . "parameters";
+                $this->assertTrue(false, $msg);
+                $result = new Failure($msg);
         }
 
-        call_user_func_array(
-            [$this->validator, 'nullOr' . ucfirst($method)],
-            $args
-        );
+        if ($success) {
+            $this->assertInstanceOf(
+                Success::class,
+                $result,
+                ($result instanceof Failure) ? $result->getMessage() : "Success"
+            );
+        }
+        else {
+            $this->assertInstanceOf(
+                Failure::class,
+                $result,
+                $result->getMessage()
+            );
+        }
+
         $this->addToAssertionCount(1);
     }
 
@@ -804,17 +844,43 @@ class ValidationTest extends TestCase
             $this->markTestSkipped('The function mb_strlen() is not available');
         }
 
-        if (!$success) {
-            $this->expectException('\InvalidArgumentException');
+        switch (count($args)) {
+            case 1:
+                $v      = $this->validator->create($method);
+                $result = $v(Success::of($args[0]));
+                break;
+
+            case 2:
+                $v      = $this->validator->create2($method);
+                $result = $v(Success::of($args[0]), $args[1]);
+                break;
+
+            case 3:
+                $v      = $this->validator->create3($method);
+                $result = $v(Success::of($args[0]), $args[1], $args[2]);
+                break;
+
+            default:
+                $msg = "cannot handle " . count($args) . "parameters";
+                $this->assertTrue(false, $msg);
+                $result = new Failure($msg);
         }
 
-        $arg = array_shift($args);
-        array_unshift($args, [$arg]);
+        if ($success) {
+            $this->assertInstanceOf(
+                Success::class,
+                $result,
+                ($result instanceof Failure) ? $result->getMessage() : "Success"
+            );
+        }
+        else {
+            $this->assertInstanceOf(
+                Failure::class,
+                $result,
+                $result->getMessage()
+            );
+        }
 
-        call_user_func_array(
-            [$this->validator, 'all' . ucfirst($method)],
-            $args
-        );
         $this->addToAssertionCount(1);
     }
 
@@ -846,17 +912,43 @@ class ValidationTest extends TestCase
             $this->markTestSkipped('The function mb_strlen() is not available');
         }
 
-        if (!$success) {
-            $this->expectException('\InvalidArgumentException');
+        switch (count($args)) {
+            case 1:
+                $v      = $this->validator->create($method);
+                $result = $v(Success::of($args[0]));
+                break;
+
+            case 2:
+                $v      = $this->validator->create2($method);
+                $result = $v(Success::of($args[0]), $args[1]);
+                break;
+
+            case 3:
+                $v      = $this->validator->create3($method);
+                $result = $v(Success::of($args[0]), $args[1], $args[2]);
+                break;
+
+            default:
+                $msg = "cannot handle " . count($args) . "parameters";
+                $this->assertTrue(false, $msg);
+                $result = new Failure($msg);
         }
 
-        $arg = array_shift($args);
-        array_unshift($args, new ArrayIterator([$arg]));
+        if ($success) {
+            $this->assertInstanceOf(
+                Success::class,
+                $result,
+                ($result instanceof Failure) ? $result->getMessage() : "Success"
+            );
+        }
+        else {
+            $this->assertInstanceOf(
+                Failure::class,
+                $result,
+                $result->getMessage()
+            );
+        }
 
-        call_user_func_array(
-            [$this->validator, 'all' . ucfirst($method)],
-            $args
-        );
         $this->addToAssertionCount(1);
     }
 
@@ -937,7 +1029,7 @@ class ValidationTest extends TestCase
     {
         $this->expectException('\BadMethodCallException');
 
-        $this->validator->isBadMethod();    /** @phpstan-ignore-line */
+        $this->validator->isBadMethod(); /** @phpstan-ignore-line */
     }
 }
 

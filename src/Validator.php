@@ -17,7 +17,6 @@ use DateTime;
 use DateTimeImmutable;
 use Exception;
 use ResourceBundle;
-use SebastianBergmann\Comparator\ComparisonFailureTest;
 use SimpleXMLElement;
 use Throwable;
 use Traversable;
@@ -109,10 +108,16 @@ class Validator
      *
      * @return Result
      */
-    public function stringNotEmpty($value, $message = '')
+    public function stringNotEmpty($value, $message = ''): Result
     {
-        $this->string($value, $message);
-        $this->notEq($value, '', $message);
+        $ret = $this->string($value, $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
+        $ret = $this->notEq($value, '', $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         return Success::of($value);
     }
@@ -123,7 +128,7 @@ class Validator
      *
      * @return Result
      */
-    public function integer($value, $message = '')
+    public function integer($value, $message = ''): Result
     {
         if (!is_int($value)) {
             return new Failure(
@@ -144,7 +149,7 @@ class Validator
      *
      * @return Result
      */
-    public function integerish($value, $message = '')
+    public function integerish($value, $message = ''): Result
     {
         if (!is_numeric($value) || $value != (int)$value) {
             return new Failure(
@@ -165,7 +170,7 @@ class Validator
      *
      * @return Result
      */
-    public function float($value, $message = '')
+    public function float($value, $message = ''): Result
     {
         if (!is_float($value)) {
             return new Failure(
@@ -186,7 +191,7 @@ class Validator
      *
      * @return Result
      */
-    public function numeric($value, $message = '')
+    public function numeric($value, $message = ''): Result
     {
         if (!is_numeric($value)) {
             return new Failure(
@@ -207,7 +212,7 @@ class Validator
      *
      * @return Result
      */
-    public function natural($value, $message = '')
+    public function natural($value, $message = ''): Result
     {
         if (!is_int($value) || $value < 0) {
             return new Failure(
@@ -228,7 +233,7 @@ class Validator
      *
      * @return Result
      */
-    public function boolean($value, $message = '')
+    public function boolean($value, $message = ''): Result
     {
         if (!is_bool($value)) {
             return new Failure(
@@ -249,7 +254,7 @@ class Validator
      *
      * @return Result
      */
-    public function scalar($value, $message = '')
+    public function scalar($value, $message = ''): Result
     {
         if (!is_scalar($value)) {
             return new Failure(
@@ -270,7 +275,7 @@ class Validator
      *
      * @return Result
      */
-    public function object($value, $message = '')
+    public function object($value, $message = ''): Result
     {
         if (!is_object($value)) {
             return new Failure(
@@ -293,7 +298,7 @@ class Validator
      *
      * @return Result
      */
-    public function resource($value, $type = null, $message = '')
+    public function resource($value, $type = null, $message = ''): Result
     {
         if (!is_resource($value)) {
             return new Failure(
@@ -324,7 +329,7 @@ class Validator
      *
      * @return Result
      */
-    public function isCallable($value, $message = '')
+    public function isCallable($value, $message = ''): Result
     {
         if (!is_callable($value)) {
             return new Failure(
@@ -343,9 +348,8 @@ class Validator
      * @param string $message
      *
      * @return Result
-     * @return Result
      */
-    public function isArray($value, $message = '')
+    public function isArray($value, $message = ''): Result
     {
         if (!is_array($value)) {
             return new Failure(
@@ -366,7 +370,7 @@ class Validator
      *
      * @return Result
      */
-    public function isArrayAccessible($value, $message = '')
+    public function isArrayAccessible($value, $message = ''): Result
     {
         if (!is_array($value) && !($value instanceof ArrayAccess)) {
             return new Failure(
@@ -387,13 +391,13 @@ class Validator
      *
      * @return Result
      */
-    public function isCountable($value, $message = '')
+    public function isCountable($value, $message = ''): Result
     {
         if (
-            !is_array($value)                        /** @phpstan-ignore-line */
-            && !($value instanceof Countable)        /** @phpstan-ignore-line */
-            && !($value instanceof ResourceBundle)   /** @phpstan-ignore-line */
-            && !($value instanceof SimpleXMLElement) /** @phpstan-ignore-line */
+            !is_array($value) /** @phpstan-ignore-line */
+            && !($value instanceof Countable) /** @phpstan-ignore-line */
+            && !($value instanceof ResourceBundle) /** @phpstan-ignore-line */
+            && !($value instanceof SimpleXMLElement)/** @phpstan-ignore-line */
         ) {
             return new Failure(
                 sprintf(
@@ -413,7 +417,7 @@ class Validator
      *
      * @return Result
      */
-    public function isIterable($value, $message = '')
+    public function isIterable($value, $message = ''): Result
     {
         if (!is_array($value) && !($value instanceof Traversable)) {
             return new Failure(
@@ -435,7 +439,7 @@ class Validator
      *
      * @return Result
      */
-    public function isInstanceOf($value, $class, $message = '')
+    public function isInstanceOf($value, $class, $message = ''): Result
     {
         if (!($value instanceof $class)) {
             return new Failure(
@@ -458,7 +462,7 @@ class Validator
      *
      * @return Result
      */
-    public function notInstanceOf($value, $class, $message = '')
+    public function notInstanceOf($value, $class, $message = ''): Result
     {
         if ($value instanceof $class) {
             return new Failure(
@@ -477,10 +481,11 @@ class Validator
      * @param mixed $value
      * @param array<object|string> $classes
      * @param string $message
+     *
      * @return Result
      * @return Result
      */
-    public function isInstanceOfAny($value, $classes, $message = '')
+    public function isInstanceOfAny($value, $classes, $message = ''): Result
     {
         foreach ($classes as $class) {
             if ($value instanceof $class) {
@@ -508,7 +513,7 @@ class Validator
      *
      * @return Result
      */
-    public function isAOf($value, $class, $message = '')
+    public function isAOf($value, $class, $message = ''): Result
     {
         $this->string($class, 'Expected class as a string. Got: %s');
 
@@ -533,9 +538,12 @@ class Validator
      *
      * @return Result
      */
-    public function isNotA($value, $class, $message = '')
+    public function isNotA($value, $class, $message = ''): Result
     {
-        $this->string($class, 'Expected class as a string. Got: %s');
+        $ret = $this->string($class, 'Expected class as a string. Got: %s');
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         if (is_a($value, $class, is_string($value))) {
             return new Failure(
@@ -554,10 +562,11 @@ class Validator
      * @param object|string $value
      * @param string[] $classes
      * @param string $message
+     *
      * @return Result
      * @return Result
      */
-    public function isAnyOf($value, array $classes, $message = '')
+    public function isAnyOf($value, array $classes, $message = ''): Result
     {
         foreach ($classes as $class) {
             $this->string($class, 'Expected class as a string. Got: %s');
@@ -582,10 +591,11 @@ class Validator
     /**
      * @param mixed $value
      * @param string $message
+     *
      * @return Result
      * @return Result
      */
-    public function isEmpty($value, $message = '')
+    public function isEmpty($value, $message = ''): Result
     {
         if (!empty($value)) {
             return new Failure(
@@ -606,7 +616,7 @@ class Validator
      *
      * @return Result
      */
-    public function notEmpty($value, $message = '')
+    public function notEmpty($value, $message = ''): Result
     {
         if (empty($value)) {
             return new Failure(
@@ -627,7 +637,7 @@ class Validator
      *
      * @return Result
      */
-    public function null($value, $message = '')
+    public function null($value, $message = ''): Result
     {
         if (null !== $value) {
             return new Failure(
@@ -648,7 +658,7 @@ class Validator
      *
      * @return Result
      */
-    public function notNull($value, $message = '')
+    public function notNull($value, $message = ''): Result
     {
         if (null === $value) {
             return new Failure(
@@ -666,7 +676,7 @@ class Validator
      *
      * @return Result
      */
-    public function true($value, $message = '')
+    public function true($value, $message = ''): Result
     {
         if (true !== $value) {
             return new Failure(
@@ -687,7 +697,7 @@ class Validator
      *
      * @return Result
      */
-    public function false($value, $message = '')
+    public function false($value, $message = ''): Result
     {
         if (false !== $value) {
             return new Failure(
@@ -708,7 +718,7 @@ class Validator
      *
      * @return Result
      */
-    public function notFalse($value, $message = '')
+    public function notFalse($value, $message = ''): Result
     {
         if (false === $value) {
             return new Failure(
@@ -725,7 +735,7 @@ class Validator
      *
      * @return Result
      */
-    public function ip($value, $message = '')
+    public function ip($value, $message = ''): Result
     {
         if (false === filter_var($value, FILTER_VALIDATE_IP)) {
             return new Failure(
@@ -745,7 +755,7 @@ class Validator
      *
      * @return Result
      */
-    public function ipv4($value, $message = '')
+    public function ipv4($value, $message = ''): Result
     {
         if (false ===
             filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
@@ -766,7 +776,7 @@ class Validator
      *
      * @return Result
      */
-    public function ipv6($value, $message = '')
+    public function ipv6($value, $message = ''): Result
     {
         if (false ===
             filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
@@ -787,7 +797,7 @@ class Validator
      *
      * @return Result
      */
-    public function email($value, $message = '')
+    public function email($value, $message = ''): Result
     {
         if (false === filter_var($value, FILTER_VALIDATE_EMAIL)) {
             return new Failure(
@@ -810,7 +820,7 @@ class Validator
      *
      * @return Result
      */
-    public function uniqueValues(array $values, $message = '')
+    public function uniqueValues(array $values, $message = ''): Result
     {
         $allValues    = count($values);
         $uniqueValues = count(array_unique($values));
@@ -837,7 +847,7 @@ class Validator
      *
      * @return Result
      */
-    public function eq($value, $expect, $message = '')
+    public function eq($value, $expect, $message = ''): Result
     {
         if ($expect != $value) {
             return new Failure(
@@ -859,7 +869,7 @@ class Validator
      *
      * @return Result
      */
-    public function notEq($value, $expect, $message = '')
+    public function notEq($value, $expect, $message = ''): Result
     {
         if ($expect == $value) {
             return new Failure(
@@ -881,7 +891,7 @@ class Validator
      *
      * @return Result
      */
-    public function same($value, $expect, $message = '')
+    public function same($value, $expect, $message = ''): Result
     {
         if ($expect !== $value) {
             return new Failure(
@@ -904,7 +914,7 @@ class Validator
      *
      * @return Result
      */
-    public function notSame($value, $expect, $message = '')
+    public function notSame($value, $expect, $message = ''): Result
     {
         if ($expect === $value) {
             return new Failure(
@@ -926,7 +936,7 @@ class Validator
      *
      * @return Result
      */
-    public function greaterThan($value, $limit, $message = '')
+    public function greaterThan($value, $limit, $message = ''): Result
     {
         if ($value <= $limit) {
             return new Failure(
@@ -949,7 +959,7 @@ class Validator
      *
      * @return Result
      */
-    public function greaterThanEq($value, $limit, $message = '')
+    public function greaterThanEq($value, $limit, $message = ''): Result
     {
         if ($value < $limit) {
             return new Failure(
@@ -972,7 +982,7 @@ class Validator
      *
      * @return Result
      */
-    public function lessThan($value, $limit, $message = '')
+    public function lessThan($value, $limit, $message = ''): Result
     {
         if ($value >= $limit) {
             return new Failure(
@@ -995,7 +1005,7 @@ class Validator
      *
      * @return Result
      */
-    public function lessThanEq($value, $limit, $message = '')
+    public function lessThanEq($value, $limit, $message = ''): Result
     {
         if ($value > $limit) {
             return new Failure(
@@ -1017,6 +1027,7 @@ class Validator
      * @param mixed $min
      * @param mixed $max
      * @param string $message
+     *
      * @return Result
      */
     public function range($value, $min, $max, string $message = ''): Result
@@ -1036,18 +1047,17 @@ class Validator
     }
 
     /**
-     * A more human-readable alias of inArray().    TODO
+     * A more human-readable alias of inArray().
+     *
      * @param mixed $value
      * @param array $values
      * @param string $message
-     * @return Result
+     *
      * @return Result
      */
-    public function oneOf($value, array $values, $message = '')
+    public function oneOf($value, array $values, $message = ''): Result
     {
-        $this->inArray($value, $values, $message);
-
-        return Success::of($value);
+        return $this->inArray($value, $values, $message);
     }
 
     /**
@@ -1061,7 +1071,7 @@ class Validator
      *
      * @return Result
      */
-    public function inArray($value, array $values, $message = '')
+    public function inArray($value, array $values, $message = ''): Result
     {
         if (!in_array($value, $values, true)) {
             return new Failure(
@@ -1087,7 +1097,7 @@ class Validator
      *
      * @return Result
      */
-    public function contains($value, $subString, $message = '')
+    public function contains($value, $subString, $message = ''): Result
     {
         if (false === strpos($value, $subString)) {
             return new Failure(
@@ -1110,7 +1120,7 @@ class Validator
      *
      * @return Result
      */
-    public function notContains($value, $subString, $message = '')
+    public function notContains($value, $subString, $message = ''): Result
     {
         if (false !== strpos($value, $subString)) {
             return new Failure(
@@ -1132,7 +1142,7 @@ class Validator
      *
      * @return Result
      */
-    public function notWhitespaceOnly($value, $message = '')
+    public function notWhitespaceOnly($value, $message = ''): Result
     {
         if (preg_match('/^\s*$/', $value)) {
             return new Failure(
@@ -1154,7 +1164,7 @@ class Validator
      *
      * @return Result
      */
-    public function startsWith($value, $prefix, $message = '')
+    public function startsWith($value, $prefix, $message = ''): Result
     {
         if (0 !== strpos($value, $prefix)) {
             return new Failure(
@@ -1177,7 +1187,7 @@ class Validator
      *
      * @return Result
      */
-    public function notStartsWith($value, $prefix, $message = '')
+    public function notStartsWith($value, $prefix, $message = ''): Result
     {
         if (0 === strpos($value, $prefix)) {
             return new Failure(
@@ -1199,9 +1209,12 @@ class Validator
      *
      * @return Result
      */
-    public function startsWithLetter($value, $message = '')
+    public function startsWithLetter($value, $message = ''): Result
     {
-        $this->string($value);
+        $ret = $this->string($value);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         $valid = isset($value[0]);
 
@@ -1232,7 +1245,7 @@ class Validator
      *
      * @return Result
      */
-    public function endsWith($value, $suffix, $message = '')
+    public function endsWith($value, $suffix, $message = ''): Result
     {
         if ($suffix !== substr($value, -strlen($suffix))) {
             return new Failure(
@@ -1255,7 +1268,7 @@ class Validator
      *
      * @return Result
      */
-    public function notEndsWith($value, $suffix, $message = '')
+    public function notEndsWith($value, $suffix, $message = ''): Result
     {
         if ($suffix === substr($value, -strlen($suffix))) {
             return new Failure(
@@ -1278,7 +1291,7 @@ class Validator
      *
      * @return Result
      */
-    public function regex($value, $pattern, $message = '')
+    public function regex($value, $pattern, $message = ''): Result
     {
         if (!preg_match($pattern, $value)) {
             return new Failure(
@@ -1300,7 +1313,7 @@ class Validator
      *
      * @return Result
      */
-    public function notRegex($value, $pattern, $message = '')
+    public function notRegex($value, $pattern, $message = ''): Result
     {
         if (preg_match($pattern, $value, $matches, PREG_OFFSET_CAPTURE)) {
             return new Failure(
@@ -1323,7 +1336,7 @@ class Validator
      *
      * @return Result
      */
-    public function unicodeLetters($value, $message = '')
+    public function unicodeLetters($value, $message = ''): Result
     {
         $this->string($value);
 
@@ -1346,9 +1359,12 @@ class Validator
      *
      * @return Result
      */
-    public function alpha($value, $message = '')
+    public function alpha($value, $message = ''): Result
     {
-        $this->string($value);
+        $ret = $this->string($value);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         $locale = setlocale(LC_CTYPE, "0");
         setlocale(LC_CTYPE, 'C');
@@ -1374,7 +1390,7 @@ class Validator
      *
      * @return Result
      */
-    public function digits($value, $message = '')
+    public function digits($value, $message = ''): Result
     {
         $locale = setlocale(LC_CTYPE, "0");
         setlocale(LC_CTYPE, 'C');
@@ -1400,7 +1416,7 @@ class Validator
      *
      * @return Result
      */
-    public function alnum($value, $message = '')
+    public function alnum($value, $message = ''): Result
     {
         $locale = setlocale(LC_CTYPE, "0");
         setlocale(LC_CTYPE, 'C');
@@ -1426,7 +1442,7 @@ class Validator
      *
      * @return Result
      */
-    public function lower($value, $message = '')
+    public function lower($value, $message = ''): Result
     {
         $locale = setlocale(LC_CTYPE, "0");
         setlocale(LC_CTYPE, 'C');
@@ -1452,7 +1468,7 @@ class Validator
      *
      * @return Result
      */
-    public function upper($value, $message = '')
+    public function upper($value, $message = ''): Result
     {
         $locale = setlocale(LC_CTYPE, "0");
         setlocale(LC_CTYPE, 'C');
@@ -1479,7 +1495,7 @@ class Validator
      *
      * @return Result
      */
-    public function length($value, $length, $message = '')
+    public function length($value, $length, $message = ''): Result
     {
         if ($length !== $this->strlen($value)) {
             return new Failure(
@@ -1504,7 +1520,7 @@ class Validator
      *
      * @return Result
      */
-    public function minLength($value, $min, $message = '')
+    public function minLength($value, $min, $message = ''): Result
     {
         if ($this->strlen($value) < $min) {
             return new Failure(
@@ -1529,7 +1545,7 @@ class Validator
      *
      * @return Result
      */
-    public function maxLength($value, $max, $message = '')
+    public function maxLength($value, $max, $message = ''): Result
     {
         if ($this->strlen($value) > $max) {
             return new Failure(
@@ -1555,7 +1571,7 @@ class Validator
      *
      * @return Result
      */
-    public function lengthBetween($value, $min, $max, $message = '')
+    public function lengthBetween($value, $min, $max, $message = ''): Result
     {
         $length = $this->strlen($value);
 
@@ -1582,7 +1598,7 @@ class Validator
      *
      * @return Result
      */
-    public function fileExists($value, $message = '')
+    public function fileExists($value, $message = ''): Result
     {
         $this->string($value);
 
@@ -1604,7 +1620,7 @@ class Validator
      *
      * @return Result
      */
-    public function file($value, $message = '')
+    public function file($value, $message = ''): Result
     {
         $this->fileExists($value, $message);
 
@@ -1626,7 +1642,7 @@ class Validator
      *
      * @return Result
      */
-    public function directory($value, $message = '')
+    public function directory($value, $message = ''): Result
     {
         $this->fileExists($value, $message);
 
@@ -1648,7 +1664,7 @@ class Validator
      *
      * @return Result
      */
-    public function readable($value, $message = '')
+    public function readable($value, $message = ''): Result
     {
         if (!is_readable($value)) {
             return new Failure(
@@ -1668,7 +1684,7 @@ class Validator
      *
      * @return Result
      */
-    public function writable($value, $message = '')
+    public function writable($value, $message = ''): Result
     {
         if (!is_writable($value)) {
             return new Failure(
@@ -1688,7 +1704,7 @@ class Validator
      *
      * @return Result
      */
-    public function classExists($value, $message = '')
+    public function classExists($value, $message = ''): Result
     {
         if (!class_exists($value)) {
             return new Failure(
@@ -1710,7 +1726,7 @@ class Validator
      *
      * @return Result
      */
-    public function subclassOf($value, $class, $message = '')
+    public function subclassOf($value, $class, $message = ''): Result
     {
         if (!is_subclass_of($value, $class)) {
             return new Failure(
@@ -1731,7 +1747,7 @@ class Validator
      *
      * @return Result
      */
-    public function interfaceExists($value, $message = '')
+    public function interfaceExists($value, $message = ''): Result
     {
         if (!interface_exists($value)) {
             return new Failure(
@@ -1753,7 +1769,11 @@ class Validator
      *
      * @return Result
      */
-    public function implementsInterface($value, $interface, $message = '')
+    public function implementsInterface(
+        $value,
+        $interface,
+        $message = ''
+    ): Result
     {
         if (!in_array($interface, class_implements($value))) {
             return new Failure(
@@ -1769,14 +1789,17 @@ class Validator
     }
 
     /**
-     *
      * @param string|object $classOrObject
-     * @param mixed $property
+     * @param string $property
      * @param string $message
      *
      * @return Result
      */
-    public function propertyExists($classOrObject, $property, $message = '')
+    public function propertyExists(
+        $classOrObject,
+        string $property,
+        string $message = ''
+    ): Result
     {
         if (!property_exists($classOrObject, $property)) {
             return new Failure(
@@ -1787,7 +1810,7 @@ class Validator
             );
         }
 
-        return Success::of(true);
+        return Success::of($classOrObject);
     }
 
     /**
@@ -1798,7 +1821,11 @@ class Validator
      *
      * @return Result
      */
-    public function propertyNotExists($classOrObject, $property, $message = '')
+    public function propertyNotExists(
+        $classOrObject,
+        $property,
+        $message = ''
+    ): Result
     {
         if (property_exists($classOrObject, $property)) {
             return new Failure(
@@ -1840,7 +1867,11 @@ class Validator
      *
      * @return Result
      */
-    public function methodNotExists($classOrObject, $method, $message = '')
+    public function methodNotExists(
+        $classOrObject,
+        $method,
+        $message = ''
+    ): Result
     {
         if (method_exists($classOrObject, $method)) {
             return new Failure(
@@ -1862,7 +1893,7 @@ class Validator
      *
      * @return Result
      */
-    public function keyExists($array, $key, $message = '')
+    public function keyExists($array, $key, $message = ''): Result
     {
         if (!(isset($array[$key]) || array_key_exists($key, $array))) {
             return new Failure(
@@ -1884,7 +1915,7 @@ class Validator
      *
      * @return Result
      */
-    public function keyNotExists($array, $key, $message = '')
+    public function keyNotExists($array, $key, $message = ''): Result
     {
         if (isset($array[$key]) || array_key_exists($key, $array)) {
             return new Failure(
@@ -1907,7 +1938,7 @@ class Validator
      *
      * @return Result
      */
-    public function validArrayKey($value, $message = '')
+    public function validArrayKey($value, $message = ''): Result
     {
         if (!(is_int($value) || is_string($value))) {
             return new Failure(
@@ -1931,9 +1962,9 @@ class Validator
      *
      * @return Result
      */
-    public function count($array, $number, $message = '')
+    public function count($array, $number, $message = ''): Result
     {
-        $this->eq(
+        $ret = $this->eq(
             count($array),
             $number,
             sprintf(
@@ -1942,6 +1973,9 @@ class Validator
                 count($array)
             )
         );
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         return Success::of($array);
     }
@@ -1956,7 +1990,7 @@ class Validator
      *
      * @return Result
      */
-    public function minCount($array, $min, $message = '')
+    public function minCount($array, $min, $message = ''): Result
     {
         if (count($array) < $min) {
             return new Failure(
@@ -1981,7 +2015,7 @@ class Validator
      *
      * @return Result
      */
-    public function maxCount($array, $max, $message = '')
+    public function maxCount($array, $max, $message = ''): Result
     {
         if (count($array) > $max) {
             return new Failure(
@@ -2007,7 +2041,7 @@ class Validator
      *
      * @return Result
      */
-    public function countBetween($array, $min, $max, $message = '')
+    public function countBetween($array, $min, $max, $message = ''): Result
     {
         $count = count($array);
 
@@ -2032,7 +2066,7 @@ class Validator
      *
      * @return Result
      */
-    public function isList($array, $message = '')
+    public function isList($array, $message = ''): Result
     {
         if (!is_array($array) || $array !== array_values($array)) {
             return new Failure(
@@ -2050,10 +2084,16 @@ class Validator
      *
      * @return Result
      */
-    public function isNonEmptyList($array, $message = '')
+    public function isNonEmptyList($array, $message = ''): Result
     {
-        $this->isList($array, $message);
-        $this->notEmpty($array, $message);
+        $ret = $this->isList($array, $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
+        $ret = $this->notEmpty($array, $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         return Success::of($array);
     }
@@ -2065,7 +2105,7 @@ class Validator
      *
      * @return Result
      */
-    public function isMap($array, $message = '')
+    public function isMap($array, $message = ''): Result
     {
         if (
             !is_array($array) ||
@@ -2087,10 +2127,16 @@ class Validator
      *
      * @return Result
      */
-    public function isNonEmptyMap($array, $message = '')
+    public function isNonEmptyMap($array, $message = ''): Result
     {
-        $this->isMap($array, $message);
-        $this->notEmpty($array, $message);
+        $ret = $this->isMap($array, $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
+        $ret = $this->notEmpty($array, $message);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         return Success::of($array);
     }
@@ -2102,7 +2148,7 @@ class Validator
      *
      * @return Result
      */
-    public function uuid($value, $message = '')
+    public function uuid($value, $message = ''): Result
     {
         $value = str_replace(['urn:', 'uuid:', '{', '}'], '', $value);
 
@@ -2137,11 +2183,14 @@ class Validator
      */
     public function throws(
         Closure $expression,
-        $class = 'Exception',
-        $message = ''
-    )
+        string $class = 'Exception',
+        string $message = ''
+    ): Result
     {
-        $this->string($class);
+        $ret = $this->string($class);
+        if ($ret instanceof Failure) {
+            return $ret;
+        }
 
         $actual = 'none';
 
@@ -2174,15 +2223,20 @@ class Validator
     /**
      * @param string $name
      * @param array $arguments
-     * @throws BadMethodCallException
+     *
      * @return Result
+     * @throws BadMethodCallException
      */
-    public function __call($name, $arguments)
+    public function __call($name, $arguments): Result
     {
         if ('nullOr' === substr($name, 0, 6)) {
             if (null !== $arguments[0]) {
                 $method = lcfirst(substr($name, 6));
-                return call_user_func_array([$this, $method], $arguments);    // todo
+
+                return call_user_func_array(
+                    [$this, $method],
+                    $arguments
+                );    // todo
             }
 
             return new Failure("Is not null");
@@ -2192,7 +2246,7 @@ class Validator
             $this->isIterable($arguments[0]);
 
             $method = lcfirst(substr($name, 3));
-            $args = $arguments;
+            $args   = $arguments;
 
             foreach ($arguments[0] as $entry) {
                 $args[0] = $entry;
@@ -2203,7 +2257,7 @@ class Validator
             return new Failure("Is not any");
         }
 
-        throw new BadMethodCallException('No such method: '.$name);
+        throw new BadMethodCallException('No such method: ' . $name);
     }
 
 
@@ -2338,12 +2392,14 @@ class Validator
      *
      * @return callable
      */
-    public function bind(callable $fn): callable {
-        return function ( ...$params) use ($fn) {
+    public function bind(callable $fn): callable
+    {
+        return function (...$params) use ($fn) {
             if ($params instanceof Failure) {
                 return $params;
             }
             $value = array_shift($params);
+
             return $fn($value->value(), ...$params);
         };
     }
@@ -2357,13 +2413,14 @@ class Validator
      */
     public function compose(callable ...$fns): callable
     {
-        return function ($x) use ($fns) {
-            $ret = is_object($x) ? clone($x) : $x;
+        return function (...$x) use ($fns) {
+            $ret   = $x;
+            $value = array_shift($ret);
             foreach ($fns as $fn) {
-                $ret = $fn($ret);
+                $value = $fn($value, ...$ret);
             }
 
-            return $ret;
+            return $value;
         };
     }
 }
