@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.4
+
+Bug fix to `bind()`, see commit 5011902.
+
 ## 0.0.3
 
 Not all unit tests were being run.  Fixing that bug uncovered more bugs
