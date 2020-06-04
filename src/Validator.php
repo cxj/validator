@@ -2395,10 +2395,10 @@ class Validator
     public function bind(callable $fn): callable
     {
         return function (...$params) use ($fn) {
-            if ($params instanceof Failure) {
-                return $params;
-            }
             $value = array_shift($params);
+            if ($value instanceof Failure) {
+                return $value;
+            }
 
             return $fn($value->value(), ...$params);
         };
