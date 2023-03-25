@@ -1,4 +1,5 @@
 <?php
+
 namespace Cxj\Validator;
 
 class Success implements Result
@@ -14,7 +15,7 @@ class Success implements Result
      *
      * @param mixed $value
      */
-    public final function __construct($value)
+    final public function __construct($value)
     {
         $this->value = $value;
     }
