@@ -116,7 +116,8 @@ class ValidatorTest extends TestCase
             ['resource', [1], false],
             ['isCallable', ['strlen'], true],
             ['isCallable', [[$this, 'getTests']], true],
-            ['isCallable', [function () { }], true],
+            ['isCallable', [function () {
+            }], true],
             ['isCallable', [1234], false],
             ['isCallable', ['foobar'], false],
             ['isArray', [[]], true],
@@ -555,7 +556,9 @@ class ValidatorTest extends TestCase
             [
                 'throws',
                 [
-                    function () { throw new LogicException('test'); },
+                    function () {
+                        throw new LogicException('test');
+                    },
                     'LogicException',
                 ],
                 true,
@@ -563,7 +566,9 @@ class ValidatorTest extends TestCase
             [
                 'throws',
                 [
-                    function () { throw new LogicException('test'); },
+                    function () {
+                        throw new LogicException('test');
+                    },
                     'IllogicException',
                 ],
                 false,
@@ -571,28 +576,36 @@ class ValidatorTest extends TestCase
             [
                 'throws',
                 [
-                    function () { throw new Exception('test'); },
+                    function () {
+                        throw new Exception('test');
+                    },
                     'Exception',
                 ],
                 true,
             ],
             [
                 'throws',
-                [function () { trigger_error('test'); }, 'Throwable'],
+                [function () {
+                    trigger_error('test');
+                }, 'Throwable'],
                 true,
                 false,
                 70000,
             ],
             [
                 'throws',
-                [function () { trigger_error('test'); }, 'Unthrowable'],
+                [function () {
+                    trigger_error('test');
+                }, 'Unthrowable'],
                 false,
                 false,
                 70000,
             ],
             [
                 'throws',
-                [function () { throw new Error(); }, 'Throwable'],
+                [function () {
+                    throw new Error();
+                }, 'Throwable'],
                 true,
                 true,
                 70000,
@@ -681,8 +694,7 @@ class ValidatorTest extends TestCase
         bool $success,
         bool $multibyte = false,
         int $minVersion = null
-    ): void
-    {
+    ): void {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
                 sprintf('This test requires php %s or upper.', $minVersion)
@@ -722,8 +734,7 @@ class ValidatorTest extends TestCase
                 $result,
                 ($result instanceof Failure) ? $result->getMessage() : "Success"
             );
-        }
-        else {
+        } else {
             $this->assertInstanceOf(
                 Failure::class,
                 $result,
@@ -749,8 +760,7 @@ class ValidatorTest extends TestCase
         bool $success,
         bool $multibyte = false,
         int $minVersion = null
-    ): void
-    {
+    ): void {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
                 sprintf('This test requires php %s or upper.', $minVersion)
@@ -790,8 +800,7 @@ class ValidatorTest extends TestCase
                 $result,
                 ($result instanceof Failure) ? $result->getMessage() : "Success"
             );
-        }
-        else {
+        } else {
             $this->assertInstanceOf(
                 Failure::class,
                 $result,
@@ -831,8 +840,7 @@ class ValidatorTest extends TestCase
         bool $success,
         bool $multibyte = false,
         int $minVersion = null
-    ): void
-    {
+    ): void {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
                 sprintf('This test requires php %s or upper.', $minVersion)
@@ -872,8 +880,7 @@ class ValidatorTest extends TestCase
                 $result,
                 ($result instanceof Failure) ? $result->getMessage() : "Success"
             );
-        }
-        else {
+        } else {
             $this->assertInstanceOf(
                 Failure::class,
                 $result,
@@ -899,8 +906,7 @@ class ValidatorTest extends TestCase
         bool $success,
         bool $multibyte = false,
         int $minVersion = null
-    ): void
-    {
+    ): void {
         if ($minVersion && PHP_VERSION_ID < $minVersion) {
             $this->markTestSkipped(
                 sprintf('This test requires php %s or upper.', $minVersion)
@@ -940,8 +946,7 @@ class ValidatorTest extends TestCase
                 $result,
                 ($result instanceof Failure) ? $result->getMessage() : "Success"
             );
-        }
-        else {
+        } else {
             $this->assertInstanceOf(
                 Failure::class,
                 $result,
@@ -1016,8 +1021,7 @@ class ValidatorTest extends TestCase
         string $method,
         array $args,
         string $exceptionMessage
-    ): void
-    {
+    ): void {
         $return = call_user_func_array([$this->validator, $method], $args);
         $this->assertInstanceOf(Failure::class, $return);
     }

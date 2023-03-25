@@ -1,4 +1,5 @@
 <?php
+
 namespace Cxj\Validator;
 
 class Failure implements Result

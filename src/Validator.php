@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Cxj\Validator;
 
 use ArrayAccess;
@@ -20,6 +21,7 @@ use ResourceBundle;
 use SimpleXMLElement;
 use Throwable;
 use Traversable;
+
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -72,6 +74,7 @@ use function str_replace;
 use function strlen;
 use function strpos;
 use function substr;
+
 use const FILTER_FLAG_IPV4;
 use const FILTER_FLAG_IPV6;
 use const FILTER_VALIDATE_IP;
@@ -1773,8 +1776,7 @@ class Validator
         $value,
         $interface,
         $message = ''
-    ): Result
-    {
+    ): Result {
         if (!in_array($interface, class_implements($value))) {
             return new Failure(
                 sprintf(
@@ -1799,8 +1801,7 @@ class Validator
         $classOrObject,
         string $property,
         string $message = ''
-    ): Result
-    {
+    ): Result {
         if (!property_exists($classOrObject, $property)) {
             return new Failure(
                 sprintf(
@@ -1825,8 +1826,7 @@ class Validator
         $classOrObject,
         $property,
         $message = ''
-    ): Result
-    {
+    ): Result {
         if (property_exists($classOrObject, $property)) {
             return new Failure(
                 sprintf(
@@ -1871,8 +1871,7 @@ class Validator
         $classOrObject,
         $method,
         $message = ''
-    ): Result
-    {
+    ): Result {
         if (method_exists($classOrObject, $method)) {
             return new Failure(
                 sprintf(
@@ -2185,8 +2184,7 @@ class Validator
         Closure $expression,
         string $class = 'Exception',
         string $message = ''
-    ): Result
-    {
+    ): Result {
         $ret = $this->string($class);
         if ($ret instanceof Failure) {
             return $ret;
@@ -2196,14 +2194,12 @@ class Validator
 
         try {
             $expression();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $actual = get_class($e);
             if ($e instanceof $class) {
                 return Success::of($expression);
             }
-        }
-        catch (Throwable $e) {
+        } catch (Throwable $e) {
             $actual = get_class($e);
             if ($e instanceof $class) {
                 return Success::of($expression);
@@ -2361,7 +2357,7 @@ class Validator
         $callable = [$this, $method];
 
         return $this->bind(
-            fn($p1): Result => $callable($p1, $message)
+            fn ($p1): Result => $callable($p1, $message)
         );
     }
 
@@ -2370,7 +2366,7 @@ class Validator
         $callable = [$this, $method];
 
         return $this->bind(
-            fn($p1, $p2): Result => $callable($p1, $p2, $message)
+            fn ($p1, $p2): Result => $callable($p1, $p2, $message)
         );
     }
 
@@ -2379,7 +2375,7 @@ class Validator
         $callable = [$this, $method];
 
         return $this->bind(
-            fn($p1, $p2, $p3): Result => $callable($p1, $p2, $p3, $message)
+            fn ($p1, $p2, $p3): Result => $callable($p1, $p2, $p3, $message)
         );
     }
 
