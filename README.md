@@ -3,6 +3,7 @@
 [![Latest stable release][version-badge]][link-packagist]
 [![Software license][license-badge]](LICENSE)
 [![Total downloads][downloads-badge]][link-packagist]
+[![StyleCI](https://github.styleci.io/repos/268982782/shield?branch=master)](https://github.styleci.io/repos/268982782?branch=master)
 [![Total stars][stars-badge]][link-github]
 
 This library contains efficient [functional programming] (FP) routines
